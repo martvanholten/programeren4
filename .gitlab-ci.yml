@@ -1,0 +1,90 @@
+#
+# GitLab example CI/CD script
+# See https://docs.gitlab.com/ee/ci/yaml/README.html
+#
+# Secure Variables like $DB_PASSWORD can added by going to your
+# project’s Settings ➔ CI / CD ➔ Variables on the GitLab website.
+#
+
+stages:
+  - testing
+  - analysis
+  - deployment
+
+#
+#  We cache our dependencies for faster pipelines
+#  https://docs.gitlab.com/ee/ci/caching/#sharing-caches-across-different-branches
+#
+cache:
+  key: one-key-to-rule-them-all
+  paths:
+    - node_modules/
+    - coverage/
+
+#
+# Global variables
+#
+variables:
+  # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
+  MYSQL_DATABASE: GitLab_MySql_database
+  MYSQL_ROOT_PASSWORD: some_secret_password
+
+#
+# Testing nodejes backend
+# Our server uses a MySql database, so to run our testcases we also need a database.
+# We do NOT use the online production database, but spawn an independent test-db on Gitlab.
+# To do so, we have to install it into the container where we run our testcases.
+#
+Testing:
+  stage: testing
+  image: node:latest
+  services:
+    - mysql:5.6
+  variables:
+    NODE_ENV: development
+    DB_USER: root
+    DB_DATABASE: ${MYSQL_DATABASE}
+    DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    DB_HOST: mysql
+  before_script:
+    # Install the database service into the node:latest image
+    - apt-get update && apt-get install -y git curl libmcrypt-dev default-mysql-client
+    - mysql --version
+    # Create tables and fill our database by inserting your *-data.sql script
+    - mysql --host=mysql --user="${DB_USER}" --password="${DB_PASSWORD}" ${DB_DATABASE} < movies-data.sql
+    - mysqlshow --host=mysql --user="${DB_USER}" --password="${DB_PASSWORD}" ${DB_DATABASE}
+    # Install the node packages that our server needs.
+    - npm install --no-optional
+  script:
+    - npm run coverage # also runs tests, see package.json
+
+Sonar analysis:
+  stage: analysis
+  image: node:latest
+  before_script:
+    - npm install --no-optional
+  script:
+    - npm run sonar
+
+#
+# Deploy to Heroku
+# DPL is a deploy tool made for continuous deployment that’s developed and used
+# by Travis CI, but can also be used with GitLab CI.
+# https://docs.gitlab.com/ee/ci/examples/deployment/#using-dpl-with-docker
+#
+Deployment:
+  type: deploy
+  stage: deployment
+  image: ruby:latest
+  script:
+    # Get your key at https://dashboard.heroku.com/account
+    # and add it to your project environment variables at GitLab.
+    - echo "Heroku api key = $HEROKU_API_KEY"
+    # The name of your app at Heroku. See https://dashboard.heroku.com/apps.
+    - echo "Heroku appname = $HEROKU_APP_NAME"
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
+  only:
+    - master
