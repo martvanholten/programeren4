@@ -11,20 +11,19 @@ module.exports = {
         logger.error('Error getting connection from pool')
         res
           .status(500)
-          .json({ error: err.toString(), datetime: new Date().toISOString() })
+          .json({ message: err.toString() })
       }
       if (connection) {
         // Check if the account exists.
         connection.query(
-          'SELECT `ID`, `Email`, `Password`, `First_Name`, `Last_Name` FROM `user` WHERE `Email` = ?',
-          [req.body.email],
+          'SELECT `id`, `firstname`, `lastname`, `emailAdress`, `password`, `phonenumber`, `roles`, `street`, `city` FROM `user` WHERE `emailAdress` = ?',
+          [req.body.emailAdress],
           (err, rows, fields) => {
             connection.release()
             if (err) {
               logger.error('Error: ', err.toString())
               res.status(500).json({
-                error: err.toString(),
-                datetime: new Date().toISOString()
+                error: err.toString()
               })
             } else {
               // There was a result, check the password.
@@ -42,10 +41,14 @@ module.exports = {
                 }
                 // Userinfo returned to the caller.
                 const userinfo = {
-                  id: rows[0].ID,
-                  firstName: rows[0].First_Name,
-                  lastName: rows[0].Last_Name,
-                  emailAdress: rows[0].Email,
+                  id: rows[0].id,
+                  firstName: rows[0].firstname,
+                  lastName: rows[0].lasrname,
+                  password: rows[0].password,
+                  phonenumber: rows[0].phonenumber,
+                  roles: rows[0].roles,
+                  street: rows[0].street,
+                  city: rows[0].ciry,
                   token: jwt.sign(payload, jwtSecretKey, { expiresIn: '2h' })
                 }
                 logger.debug('Logged in, sending: ', userinfo)
@@ -53,8 +56,7 @@ module.exports = {
               } else {
                 logger.info('User not found or password invalid')
                 res.status(401).json({
-                  message: 'User not found or password invalid',
-                  datetime: new Date().toISOString()
+                  message: 'User not found or password invalid'
                 })
               }
             }
@@ -66,7 +68,7 @@ module.exports = {
   validateLogin(req, res, next) {
     // Verify that we receive the expected input
     try {
-      assert(typeof req.body.email === 'string', 'email must be a string.')
+      assert(typeof req.body.emailAdress === 'string', 'email must be a string.')
       assert(
         typeof req.body.password === 'string',
         'password must be a string.'
@@ -78,7 +80,7 @@ module.exports = {
         .json({ error: ex.toString(), datetime: new Date().toISOString() })
     }
   },
-  register(req, res, next) {
+  register(req, res) {
     logger.info('register')
     logger.info(req.body)
 
@@ -91,11 +93,11 @@ module.exports = {
           .json({ error: ex.toString(), datetime: new Date().toISOString() })
       }
       if (connection) {
-        let { firstname, lastname, email, studentnr, password } = req.body
+        let { firstname, lastname, emailAdress, password, street, city } = req.body
 
         connection.query(
-          'INSERT INTO `user` (`First_Name`, `Last_Name`, `Email`, `Student_Number`, `Password`) VALUES (?, ?, ?, ?, ?)',
-          [firstname, lastname, email, studentnr, password],
+          'INSERT INTO `user` (`firstname`, `lastname`, `emailAdress`, `password`, `street`, `city`) VALUES (?, ?, ?, ?, ?, ?)',
+          [firstname, lastname, emailAdress, password, street, city],
           (err, rows, fields) => {
             connection.release()
             if (err) {
@@ -117,7 +119,7 @@ module.exports = {
                 id: rows.insertId,
                 firstName: firstname,
                 lastName: lastname,
-                emailAdress: email,
+                emailAdress: emailAdress,
                 token: jwt.sign(payload, jwtSecretKey, { expiresIn: '2h' })
               }
               logger.debug('Registered', userinfo)
@@ -134,6 +136,7 @@ module.exports = {
   //
   validateRegister(req, res, next) {
     // Verify that we receive the expected input
+    console.log("Reached Validation")
     try {
       assert(
         typeof req.body.firstname === 'string',
@@ -143,11 +146,12 @@ module.exports = {
         typeof req.body.lastname === 'string',
         'lastname must be a string.'
       )
-      assert(typeof req.body.email === 'string', 'email must be a string.')
+      assert(typeof req.body.emailAdress === 'string', 'email must be a string.')
       assert(
         typeof req.body.password === 'string',
         'password must be a string.'
       )
+      console.log("validation completed")
       next()
     } catch (ex) {
       console.log('validateRegister error: ', ex)
@@ -194,7 +198,7 @@ module.exports = {
     }
   },
 
-  renewToken(req, res, next) {
+  renewToken(req, res) {
     logger.debug('renewToken')
 
     pool.getConnection((err, connection) => {
@@ -207,7 +211,7 @@ module.exports = {
       if (connection) {
         // 1. Kijk of deze useraccount bestaat.
         connection.query(
-          'SELECT * FROM `user` WHERE `ID` = ?',
+          'SELECT * FROM `user` WHERE `id` = ?',
           [req.userId],
           (err, rows, fields) => {
             connection.release()
