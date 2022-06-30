@@ -1,4 +1,7 @@
 const assert = require('assert')
+const logger = require('../config/config').logger
+const jwt = require('jsonwebtoken')
+const jwtSecretKey = require('../config/config').jwtSecretKey
 
 module.exports = {
     validateUserLogin(req, res, next) {
@@ -68,9 +71,9 @@ module.exports = {
             }
             if (payload) {
               logger.debug('token is valid', payload)
-              // User heeft toegang. Voeg UserId uit payload toe aan
-              // request, voor ieder volgend endpoint.
-              req.userId = payload.id
+              // User has acces, add the userId to the user for next use.
+              req.userId = payload.userId
+              logger.debug(req.userId)
               next()
             }
           })

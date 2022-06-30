@@ -4,7 +4,7 @@ const logger = require('../config/config').logger
 const jwtSecretKey = require('../config/config').jwtSecretKey
 
 module.exports = {
-  login(req, res, next) {
+  login(req, res) {
     let {emailAdress, password} = req.body
     pool.getConnection((err, connection) => {
       if (err) {
