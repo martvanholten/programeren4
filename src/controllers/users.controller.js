@@ -62,6 +62,9 @@ module.exports = {
             }
           }
         )
+        pool.end((err)=>{
+          console.log('Pool was colsed');
+        })
       }
     })
   },
@@ -74,10 +77,10 @@ module.exports = {
         'password must be a string.'
       )
       next()
-    } catch (ex) {
+    } catch (err) {
       res
         .status(422)
-        .json({ error: ex.toString(), datetime: new Date().toISOString() })
+        .json({ error: err.toString() })
     }
   },
   register(req, res) {
@@ -87,10 +90,10 @@ module.exports = {
     //Query the database to see if the email of the user to be registered already exists.
     pool.getConnection((err, connection) => {
       if (err) {
-        logger.error('Error getting connection from pool: ' + err.toString())
+        logger.error('Message: ' + err.toString())
         res
           .status(500)
-          .json({ error: ex.toString(), datetime: new Date().toISOString() })
+          .json({ error: err.toString() })
       }
       if (connection) {
         let { firstname, lastname, emailAdress, password, street, city } = req.body
@@ -104,8 +107,7 @@ module.exports = {
               // When the INSERT fails, we assume the user already exists
               logger.error('Error: ' + err.toString())
               res.status(400).json({
-                message: 'This email has already been taken.',
-                datetime: new Date().toISOString()
+                message: 'This email has already been taken.'
               })
             } else {
               logger.trace(rows)
@@ -120,13 +122,18 @@ module.exports = {
                 firstName: firstname,
                 lastName: lastname,
                 emailAdress: emailAdress,
-                token: jwt.sign(payload, jwtSecretKey, { expiresIn: '2h' })
+                street: street,
+                city: city,
+                token: jwt.sign(payload, jwtSecretKey, { expiresIn: '24h' })
               }
               logger.debug('Registered', userinfo)
               res.status(200).json(userinfo)
             }
           }
         )
+        pool.end((err)=>{
+          console.log('Pool was colsed');
+        })
       }
     })
   },
@@ -157,7 +164,7 @@ module.exports = {
       console.log('validateRegister error: ', ex)
       res
         .status(422)
-        .json({ message: ex.toString(), datetime: new Date().toISOString() })
+        .json({ message: err.toString(), datetime: new Date().toISOString() })
     }
   },
 
@@ -229,10 +236,10 @@ module.exports = {
               }
               // Userinfo returned to the caller.
               const userinfo = {
-                id: rows[0].ID,
-                firstName: rows[0].First_Name,
-                lastName: rows[0].Last_Name,
-                emailAdress: rows[0].Email,
+                id: rows[0].id,
+                firstName: rows[0].firstname,
+                lastName: rows[0].lastname,
+                emailAdress: rows[0].emailAdress,
                 token: jwt.sign(payload, jwtSecretKey, { expiresIn: '2h' })
               }
               logger.debug('Sending: ', userinfo)
@@ -240,6 +247,9 @@ module.exports = {
             }
           }
         )
+        pool.end((err)=>{
+          console.log('Pool was colsed');
+        })
       }
     })
   }

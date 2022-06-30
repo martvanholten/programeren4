@@ -1,16 +1,17 @@
-const loglevel = process.env.LOGLEVEL || 'trace'
+// const loglevel = process.env.LOGLEVEL
+require('dotenv').config()
 
 module.exports = {
   dbconfig: {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'share-a-meal_user',
-    database: process.env.DB_DATABASE || 'share-a-meal',
-    password: process.env.DB_PASSWORD || 'password',
-    multipleStatements: true,
-    connectionLimit: 10
+    connectionLimit: 10,
+    host     : process.env.DB_HOST,
+    port     : process.env.DB_PORT,
+    user     : process.env.DB_USER,
+    password : process.env.DB_PASSWORD,
+    database : process.env.DB_DATABASE
   },
 
-  jwtSecretKey: process.env.SECRET || 'secret',
+  jwtSecretKey: process.env.SECRET,
 
   logger: require('tracer').console({
     format: ['{{timestamp}} [{{title}}] {{file}}:{{line}} : {{message}}'],
@@ -18,6 +19,6 @@ module.exports = {
       data.title = data.title.toUpperCase()
     },
     dateformat: 'isoUtcDateTime',
-    level: loglevel
+    level: process.env.LOGLEVEL
   })
 }

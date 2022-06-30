@@ -1,5 +1,3 @@
-!process.env.NODE_ENV ? (process.env.NODE_ENV = 'development') : null
-
 const express = require('express')
 const bodyParser = require('body-parser')
 const movieroutes = require('./src/routes/movie.routes')
@@ -7,9 +5,10 @@ const userroutes = require('./src/routes/users.routes')
 const mealroutes = require('./src/routes/meals.routes')
 const logger = require('./src/config/config').logger
 const pool = require('./src/config/database')
+require('dotenv').config()
 
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT
 
 app.use(bodyParser.json())
 
