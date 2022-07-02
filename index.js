@@ -1,6 +1,5 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const movieroutes = require('./src/routes/movie.routes')
 const userroutes = require('./src/routes/users.routes')
 const mealroutes = require('./src/routes/meals.routes')
 const logger = require('./src/config/config').logger
@@ -34,7 +33,6 @@ app.all('*', (req, res, next) => {
 })
 
 app.use('/api', userroutes)
-app.use('/api', movieroutes)
 app.use('/api', mealroutes)
 
 app.all('*', (req, res, next) => {

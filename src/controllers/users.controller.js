@@ -5,65 +5,62 @@ const jwtSecretKey = require('../config/config').jwtSecretKey
 
 module.exports = {
   login(req, res) {
-    let {emailAdress, password} = req.body
     pool.getConnection((err, connection) => {
       if (err) {
-        logger.error('Error getting connection from pool')
+        logger.error('error getting connection from pool')
         res
           .status(500)
-          .json({ Message: err.toString() })
+          .json({ message: err.toString() })
       }
       if (connection) {
         // Check if the account exists.
         connection.query(
           'SELECT * FROM `user` WHERE `emailAdress` = ?',
-          [emailAdress],
+          [req.body.emailAdress],
           (err, rows, fields) => {
             connection.release()
             if (err) {
-              logger.error('Error: ', err.toString())
-              res.status(500).json({
-                Message: err.toString()
+              logger.error('error: ', err.toString())
+              res.status(422).json({
+                message: err.toString()
               })
-            } else if (rows && rows.length === 1){
-              // There was a result, check the password.
-              logger.info('Database responded: ')
-              logger.info(rows)
-              user = rows[0]
+            } else if (rows && rows.length === 1 && rows[0].password === req.body.password){
+              logger.info(
+                'passwords DID match, sending userinfo and valid token'
+              )
+              // Extract the password from the userdata - we do not send that in the response.
+              const { password, ...userinfo } = rows[0]
+              // Create an object containing the data we want in the payload.
               const payload = {
-                userId: user.id,
+                  userId: userinfo.id,
               }
-                if (
-                  user.password === req.body.password
-                ) {
-                  logger.info('Passwords did match, sending valid token')
-                  jwt.sign(
-                    payload,
-                    jwtSecretKey,
-                    { expiresIn: '12d' },
-                    function (err, token) {
-                        logger.debug(
-                            'User logged in, sending: ',
-                            user
-                        )
-                        res.status(200).json({
-                            statusCode: 200,
-                            results: { user, token },
-                        })
-                    }
-                )
-                }else {
-                  logger.info('Error user password invalid')
-                  res.status(400).json({
-                    Message: 'Error: user password invalid'
-                  })
-                }
+
+              jwt.sign(
+                  payload,
+                  jwtSecretKey,
+                  { expiresIn: '12d' },
+                  function (err, token) {
+                      logger.debug(
+                          'User logged in, sending: ',
+                          userinfo
+                      )
+                      res.status(200).json({
+                          statusCode: 200,
+                          results: { ...userinfo, token },
+                      })
+                  }
+              )
+            }else if(rows.length === 0){
+              logger.info('error user does not exist')
+                res.status(404).json({
+                  message: 'error: user does not exist'
+                })
             }else{
-              logger.info('Error user email not found')
+              logger.info('error user password or email invalid')
               res.status(400).json({
-              Message: 'Error: user email not found'
-            })
-          }
+                message: 'error: user password or email invalid'
+              })
+            }
         })
       }
     })
@@ -78,7 +75,7 @@ module.exports = {
         logger.error(err.toString())
         res
           .status(500)
-          .json({ Message: err.toString() })
+          .json({ message: err.toString() })
       }
       if (connection) {
         let { firstName, lastName, emailAdress, password, street, city } = req.body
@@ -89,13 +86,12 @@ module.exports = {
             connection.release()
             if (err) {
               logger.error(err.toString())
-              res.status(400).json({
+              res.status(409).json({
                 message: err.toString()
               })
             } else {
-              logger.trace(rows)
-              logger.info('Registered: ', rows)
-              res.status(200).json('Account registerd')
+              logger.info('result: ', rows)
+              res.status(201).json({result: rows})
             }
           }
         )
@@ -112,7 +108,7 @@ module.exports = {
 
     pool.getConnection((err, connection) => {
       if (err) {
-        logger.error('Error getting connection from pool')
+        logger.error('error getting connection from pool')
         res
           .status(500)
           .json({ message: err.toString() })
@@ -125,20 +121,20 @@ module.exports = {
           (err, rows, fields) => {
             connection.release()
             if (err) {
-              logger.error('Error: ', err.toString())
-              res.status(500).json({
-                Message: err.toString()
+              logger.error('error: ', err.toString())
+              res.status(422).json({
+                message: err.toString()
               })
             } else if(rows && rows.length === 1){
               // There was a result, check the password.
               logger.info('Database responded: ')
               logger.info(rows)
                 logger.info('User requested: ', rows)
-                res.status(200).json(rows)
+                res.status(200).json({message: rows})
             }else{
-              logger.info('Error: user id not found')
-              res.status(400).json({
-                Message: 'Error: user id not found'
+              logger.info('error: user id not found')
+              res.status(404).json({
+                message: 'error: user id not found'
               })
             }
           }
@@ -146,6 +142,47 @@ module.exports = {
       }
     })
   },
+
+  getOwn(req, res) {
+    logger.trace('get called')
+    logger.info(req.body)
+
+    pool.getConnection((err, connection) => {
+      if (err) {
+        logger.error('error getting connection from pool')
+        res
+          .status(500)
+          .json({ message: err.toString() })
+      }
+      if (connection) {
+        // Check if the account exists.
+        connection.query(
+          'SELECT * FROM `user` WHERE `id` = ?',
+          [req.userId],
+          (err, rows, fields) => {
+            connection.release()
+            if (err) {
+              logger.error('error: ', err.toString())
+              res.status(422).json({
+                message: err.toString()
+              })
+            } else if(rows && rows.length === 1){
+              // There was a result, check the password.
+              logger.info('Database responded: ')
+              logger.info(rows)
+                logger.info('User requested: ', rows)
+                res.status(200).json({message: rows})
+            }else{
+              logger.info('error: user id not found')
+              res.status(404).json({
+                message: 'error: user id not found'
+              })
+            }
+          }
+        )
+      }
+    })
+  },  
 
   getAll(req, res) {
     logger.trace('getAll called')
@@ -158,6 +195,7 @@ module.exports = {
       queryString += ' WHERE '
       if(firstName){
         queryString += 'firstName LIKE ?'
+        firstName = '%' + firstName + '%'
       }
       if(firstName&&isActive){
         queryString += ' AND '
@@ -167,11 +205,9 @@ module.exports = {
       }
     }
 
-    firstName = '%' + firstName + '%'
-
     pool.getConnection(function (err, connection) {
       if (err) {
-        res.status(400).json({
+        res.status(500).json({
           error: err.toString()
         })
       }
@@ -181,13 +217,12 @@ module.exports = {
         (err, rows, fields) => {
           connection.release()
           if (err) {
-            res.status(400).json({
+            res.status(422).json({
               message: err.toString()
             })
           }else{
-            res.status(200).json({
-              rows
-            })
+            logger.info(rows)
+            res.status(200).json( {message: rows})
           }
         })
       }
@@ -200,7 +235,7 @@ module.exports = {
 
     pool.getConnection((err, connection) => {
       if (err) {
-        logger.error('Error getting connection from pool')
+        logger.error('error getting connection from pool')
         res
           .status(500)
           .json({ message: err.toString() })
@@ -208,23 +243,54 @@ module.exports = {
       if (connection) {
         // delete the account
         connection.query(
-          'DELETE FROM user WHERE id = ?',
+          'SELECT * FROM `user` WHERE `id` = ?',
           [req.params.id],
           (err, rows, fields) => {
-            connection.release()
             if (err) {
-              logger.error('Error: ', err.toString())
-              res.status(500).json({
-                Message: err.toString()
+              logger.error('error: ', err.toString())
+              res.status(400).json({
+                message: err.toString()
               })
-            } else {
-              logger.info('Account deleted')
-              res.status(200).json('Account deleted')
+            } else if(rows && rows.length === 1){
+              if(req.userId === rows[0].id){
+                pool.getConnection((err, connection) => {
+                  if (err) {
+                    logger.error('error getting connection from pool')
+                    res
+                      .status(500)
+                      .json({ message: err.toString() })
+                  }
+                  if (connection) {
+                    // delete the account
+                    connection.query(
+                      'DELETE FROM `user` WHERE `id` = ?',
+                      [req.userId],
+                      (err, rows, fields) => {
+                        if (err) {
+                          logger.error('error: ', err.toString())
+                          res.status(400).json({
+                            message: err.toString()
+                          })
+                        } else {
+                          logger.info('result: ', rows)
+                          res.status(200).json({result: rows})
+                        }
+                      }
+                    )
+                  }
+                })
+              }else{
+                logger.info('this is not your account')
+                res.status(403).json({message: 'this is not your account'})
+              }
+            }else{
+              logger.info('there is no account')
+              res.status(400).json({message: 'there is no account'})
             }
           }
         )
       }
-    })
+    })    
   },
 
   alter(req, res) {
@@ -233,128 +299,32 @@ module.exports = {
 
     pool.getConnection((err, connection) => {
       if (err) {
-        logger.error('Error getting connection from pool')
+        logger.error('error getting connection from pool')
         res
           .status(500)
           .json({ message: err.toString() })
       }
       if (connection) {
         // Alter the account.
-        let { firstName, lastName, emailAdress, password, street, city, phonenumber, isActive } = req.body
+        let { firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive} = req.body
         connection.query(
-          'UPDATE `user` SET `firstName` = ?, `lastName` = ?, `emailAdress` = ?, `password` = ?, `street` = ?, `city` = ?, `phonenumber` = ?, isActive = ? WHERE `id` = ?',
-          [firstName, lastName, emailAdress, password, street, city, phonenumber, isActive, req.params.id],
+          'UPDATE `user` SET `firstName` = ?, `lastName` = ?, `emailAdress` = ?, `password` = ?, `street` = ?, `city` = ?, `phoneNumber` = ?, isActive = ? WHERE `id` = ?',
+          [firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive, req.params.id],
           (err, rows, fields) => {
             connection.release()
             if (err) {
-              logger.error('Error: ', err.toString())
-              res.status(500).json({
-                Message: err.toString()
+              logger.info('error: user id not found')
+              res.status(400).json({
+                message: 'error: user id not found'
               })
-            }else if(rows && rows.length === 1){
+            }else{
               
               logger.info('User altert: ', rows)
-              res.status(200).json(rows)
-            }else {
-              logger.info('Error: user id not found')
-              res.status(400).json({
-                Message: 'Error: user id not found'
-              })
+              res.status(200).json({Altert: rows})
             }
           }
         )
       }
     })
   },
-
-  validateToken(req, res, next) {
-    logger.info('validateToken called')
-    // logger.trace(req.headers)
-    // The headers should contain the authorization-field with value 'Bearer [token]'
-    const authHeader = req.headers.authorization
-    if (!authHeader) {
-      logger.warn('Authorization header missing!')
-      res.status(401).json({
-        Message: 'Authorization header missing!'
-      })
-    } else {
-      // Strip the word 'Bearer ' from the headervalue
-      const token = authHeader.substring(7, authHeader.length)
-
-      jwt.verify(token, jwtSecretKey, (err, payload) => {
-        if (err) {
-          logger.warn('Not authorized')
-          res.status(401).json({
-            Message: 'Not authorized'
-          })
-        }
-        if (payload) {
-          logger.info('token is valid', payload)
-          // User has acces, add the payload id
-          req.userId = payload.id
-          next()
-        }
-      })
-    }
-  },
-
-  renewToken(req, res) {
-    logger.info('renewToken')
-    let {id} = req.body
-
-    pool.getConnection((err, connection) => {
-      if (err) {
-        logger.error('Error getting connection from pool')
-        res
-          .status(500)
-          .json({ Message: err.toString() })
-      }
-      if (connection) {
-        // Check if the user exists.
-        connection.query(
-          'SELECT * FROM `user` WHERE `id` = ?',
-          [id],
-          (err, rows, fields) => {
-            connection.release()
-            if (err) {
-              logger.error('Error: ', err.toString())
-              res.status(500).json({
-                Message: err.toString()
-              })
-            } else {
-              // User found return user info with the new token.
-              // Create an object containing the data we want in the payload.
-              user = rows[0]
-              const payload = {
-                userId: user.id,
-              }
-                if (
-                  user.password === req.body.password
-                ) {
-                  logger.info('Passwords did match, sending valid token')
-                  jwt.sign(
-                    payload,
-                    jwtSecretKey,
-                    { expiresIn: '12d' },
-                    function (err, token) {
-                        logger.debug(
-                            'User logged in, sending: ',
-                            user
-                        )
-                        res.status(200).json({
-                            statusCode: 200,
-                            results: { user, token },
-                        })
-                    }
-                )
-              }
-            } 
-          }
-        )
-        // pool.end((err)=>{
-        //   console.log('Pool was colsed'); 
-        // })
-      }
-    })
-  }
 }
