@@ -26,10 +26,8 @@ const CLEAR_DB = CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USERS_TABLE
  * Deze id kun je als foreign key gebruiken in de andere queries, bv insert meal.
  */
 const INSERT_USER =
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive`) VALUES' +
-    ' (1, "first", "last", "name@server.nl", "secret", "street", "city", 1);' +
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive`) VALUES' +
-    ' (2, "fabian", "last", "fabian@server.nl", "secret", "street", "city", 0);'
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
+    "(1, 'first', 'last', 'name@server.nl', 'secret', 'street', 'city');"
 
 /**
  * Query om twee meals toe te voegen. Let op de cookId, die moet matchen
@@ -56,7 +54,7 @@ describe('meal API', () => {
         done()
     })
 
-    describe('UC-303 Lijst van maaltijden opvragen /api/meal', () => {
+    describe('UC meal', () => {
         //
         beforeEach((done) => {
             logger.debug('beforeEach called')
@@ -83,14 +81,16 @@ describe('meal API', () => {
             chai.request(server)
                 .post('/api/meal/register')
                 // name is missing
-                .send(
+                .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
+                )
+                .send(
                 {
                     dateTime: "2022-05-22 13:35:00",
                     description: "description",
                     imageUrl: "imag.com",
-                    price: "5",
+                    price: "5"
                 })
                 .end((err, res) => {
                     assert.ifError(err)
@@ -107,7 +107,7 @@ describe('meal API', () => {
                     dateTime: "2022-05-22 13:35:00",
                     description: "description",
                     imageUrl: "imag.com",
-                    price: "5",
+                    price: "5"
                 })
                 .end((err, res) => {
                     assert.ifError(err)
@@ -121,14 +121,15 @@ describe('meal API', () => {
             chai.request(server)
                 .post('/api/meal/alter/1')
                 // name is missing
-                .send(
+                .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey))
+                .send(    
                 {
                     dateTime: "2022-05-22 13:35:00",
                     description: "description",
                     imageUrl: "imag.com",
-                    price: "5",
+                    price: "5"
                 })
                 .end((err, res) => {
                     assert.ifError(err)
@@ -146,7 +147,7 @@ describe('meal API', () => {
                     dateTime: "2022-05-22 13:35:00",
                     description: "description",
                     imageUrl: "imag.com",
-                    price: "5",
+                    price: "5"
                 })
                 .end((err, res) => {
                     assert.ifError(err)
@@ -158,19 +159,23 @@ describe('meal API', () => {
         it('TC-302-3 should return valid error status when meal is not from the user', (done) => {
             chai.request(server)
                 .post('/api/meal/alter/1')
+                .set(
+                    'Authorization',
+                    'Bearer' + jwt.sign({ userId: 50 }, jwtSecretKey),
+                )
                 .send(
-                    'authorization',
-                    'Bearer ' + jwt.sign({ id: 2 }, jwtSecretKey),
                 {
                     name: "food",
                     dateTime: "2022-05-22 13:35:00",
                     description: "description",
                     imageUrl: "imag.com",
-                    price: "5",
+                    price: "5"
                 })
+                // works in postman
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(403)
+                    // ress.should.have.status(400)
                     done()
                 })
         })
@@ -178,19 +183,23 @@ describe('meal API', () => {
         it('TC-302-4 should return valid error status when meal does not exist', (done) => {
             chai.request(server)
                 .post('/api/meal/alter/10')
-                .send(
+                .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 10 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 10 }, jwtSecretKey),
+                    )
+                .send(
                 {
                     name: "food",
                     dateTime: "2022-05-22 13:35:00",
                     description: "description",
                     imageUrl: "imag.com",
-                    price: "5",
+                    price: "5"
                 })
                 .end((err, res) => {
                     assert.ifError(err)
+                    // works in postman
                     res.should.have.status(404)
+                    // res.should.have.status(400)
                     done()
                 })
         })
@@ -198,19 +207,23 @@ describe('meal API', () => {
         it('TC-302-5 should return valid succes status when meal is altered', (done) => {
             chai.request(server)
                 .post('/api/meal/alter/1')
-                .send(
+                .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
-                {
-                    name: "food",
-                    dateTime: "2022-05-22 13:35:00",
-                    description: "description",
-                    imageUrl: "imag.com",
-                    price: "5",
-                })
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
+                )
+                .send(
+                    {
+                        name: "food",
+                        dateTime: "2022-05-22 13:35:00",
+                        description: "description",
+                        imageUrl: "imag.com",
+                        price: "5"
+                    })
                 .end((err, res) => {
                     assert.ifError(err)
+                    // works in postman
                     res.should.have.status(200)
+                    // res.should.have.status(400)
                     done()
                 })
         })
@@ -261,13 +274,15 @@ describe('meal API', () => {
         it('TC-305-3 should return valid error status when a user does not own the meal', (done) => {
             chai.request(server)
                 .delete('/api/meal/delete/1')
-                .send(
+                .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 2 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 2 }, jwtSecretKey),
                 )
                 .end((err, res) => {
                     assert.ifError(err)
+                    // works in postman
                     res.should.have.status(403)
+                    // res.should.have.status(401)
                     done()
                 })
         })
@@ -275,13 +290,15 @@ describe('meal API', () => {
         it('TC-305-4 should return valid error status when a meal does not exist', (done) => {
             chai.request(server)
                 .delete('/api/meal/delete/10')
-                .send(
+                .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 10 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 10 }, jwtSecretKey),
                 )
                 .end((err, res) => {
                     assert.ifError(err)
+                    // works in postman
                     res.should.have.status(404)
+                    // res.should.have.status(401)
                     done()
                 })
         })
@@ -289,37 +306,43 @@ describe('meal API', () => {
         it('TC-305-5 should return valid succes status when a meal is deleted', (done) => {
             chai.request(server)
                 .delete('/api/meal/delete/1')
-                .send(
+                .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
                 )
                 .end((err, res) => {
                     assert.ifError(err)
+                    // works in postman
                     res.should.have.status(200)
+                    // // res.should.have.status(401)
                     done()
                 })
         })
     }),
 
-    describe('UC-303 Lijst van maaltijden opvragen /api/meal', () => {
+    describe('meals test', () => {
         //
         beforeEach((done) => {
             logger.debug('beforeEach called')
             // maak de testdatabase opnieuw aan zodat we onze testen kunnen uitvoeren.
             pool.getConnection(function (err, connection) {
                 if (err) throw err // not connected!
-                connection.query(
-                    CLEAR_DB + INSERT_USER + INSERT_MEALS + INSERT_MEALS_USER,
-                    function (error, results, fields) {
-                        // When done with the connection, release it.
-                        connection.release()
-                        // Handle error after the release.
-                        if (error) throw error
-                        // Let op dat je done() pas aanroept als de query callback eindigt!
-                        logger.debug('beforeEach done')
-                        done()
-                    }
-                )
+                try {
+                    connection.query(
+                        CLEAR_DB + INSERT_USER  + INSERT_MEALS + INSERT_MEALS_USER,
+                        function (error, results, fields) {
+                            // When done with the connection, release it.
+                            connection.release()
+                            // Handle error after the release.
+                            if (error) throw error
+                            // Let op dat je done() pas aanroept als de query callback eindigt!
+                            logger.debug('beforeEach done')
+                            done()
+                        }
+                    )
+                } catch (error) {
+                    console.error(error);
+                }
             })
         })
 
@@ -336,7 +359,7 @@ describe('meal API', () => {
 
         it('TC-401-2 should return valid error status when a meal does not exist', (done) => {
             chai.request(server)
-                .delete('/api/meal/signon/10')
+                .post('/api/meal/signon/10')
                 .send(
                     'authorization',
                     'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
@@ -350,7 +373,7 @@ describe('meal API', () => {
 
         it('TC-401-3 should return valid sucess status when a user is signed up', (done) => {
             chai.request(server)
-                .delete('/api/meal/signon/2')
+                .post('/api/meal/signon/2')
                 .send(
                     'authorization',
                     'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
@@ -362,10 +385,35 @@ describe('meal API', () => {
                 })
         })
         
+        
         // TC-402 sign off for a meal
+        before((done) => {
+            logger.debug('beforeEach called')
+            // maak de testdatabase opnieuw aan zodat we onze testen kunnen uitvoeren.
+            pool.getConnection(function (err, connection) {
+                if (err) throw err // not connected!
+                try {
+                    connection.query(
+                        CLEAR_DB + INSERT_USER  + INSERT_MEALS + INSERT_MEALS_USER,
+                        function (error, results, fields) {
+                            // When done with the connection, release it.
+                            connection.release()
+                            // Handle error after the release.
+                            if (error) throw error
+                            // Let op dat je done() pas aanroept als de query callback eindigt!
+                            logger.debug('beforeEach done')
+                            done()
+                        }
+                    )
+                } catch (error) {
+                    console.error(error);
+                }
+            })
+        })
+
         it('TC-402-1 should return valid error status when a user is not logged in', (done) => {
             chai.request(server)
-                .post('/api/meal/signoff/1')
+                .set('/api/meal/signoff/1')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
@@ -376,7 +424,7 @@ describe('meal API', () => {
         it('TC-402-2 should return valid error status when a meal does not exist', (done) => {
             chai.request(server)
                 .delete('/api/meal/signoff/10')
-                .send(
+                .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
                 )
@@ -387,10 +435,10 @@ describe('meal API', () => {
                 })
         })
 
-        it('TC-402-3 should return valid sucess status when a user is signed up', (done) => {
+        it('TC-402-3 should return valid sucess status when a user is signed off', (done) => {
             chai.request(server)
-                .delete('/api/meal/signon/1')
-                .send(
+                .delete('/api/meal/signon/2')
+                .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
                 )

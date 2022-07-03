@@ -2,6 +2,10 @@ const config = require('../config/config')
 const logger = config.logger
 const assert = require('assert')
 const pool = require('../config/database')
+const { runInNewContext } = require('vm')
+
+// test token id 50: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUwLCJpYXQiOjE2NTY3OTU3ODksImV4cCI6MTY1NzgzMjU4OX0.m-18kePSm7VOiPVRQwYdsSAChxJxTJTPnGT1mulJ4II
+// valid test token id 1: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTY1NjgwMDI1MCwiZXhwIjoxNjU3ODM3MDUwfQ.HlZmtjBV8fgFGKtGschduzqAneYnSgN-bCOiu5el6kQ
 
 module.exports = {
 
@@ -109,68 +113,8 @@ module.exports = {
   delete(req, res) {
     logger.trace('delete called')
     logger.info(req.body)
-
-    pool.getConnection((err, connection) => {
-      if (err) {
-        logger.error('error getting connection from pool')
-        res
-          .status(500)
-          .json({ message: err.toString() })
-      }
-      if (connection) {
-        // delete the account
-        connection.query(
-          'SELECT cookId FROM `meal` WHERE `cookId` = ?',
-          [req.userId],
-          (err, rows, fields) => {
-            if (err) {
-              logger.error('error: ', err.toString())
-              res.status(404).json({
-                message: err.toString()
-              })
-            } else if(rows && rows.length === 1){
-              pool.getConnection((err, connection) => {
-                if (err) {
-                  logger.error('error getting connection from pool')
-                  res
-                    .status(500)
-                    .json({ message: err.toString() })
-                }
-                if (connection) {
-                  // delete the account
-                  connection.query(
-                    'DELETE FROM `meal` WHERE `id` = ?',
-                    [req.params.id],
-                    (err, rows, fields) => {
-                      connection.release()
-                      if (err) {
-                        logger.error('error: ', err.toString())
-                        res.status(404).json({
-                          message: err.toString()
-                        })
-                      } else {
-                        logger.info(rows)
-                        logger.info('result: ', rows)
-                        res.status(200).json({result: rows})
-                      }
-                    }
-                  )
-                }
-              })
-            }else{
-              logger.info('this meal belongs to someone else')
-              res.status(403).json({message: 'this meal belongs to someone else'})
-            }
-          }
-        )
-      }
-    })    
-  },
-
-  alter(req, res) {
-    logger.trace('alter called')
-    logger.info(req.body)
-    if(req.userId === req.params.id){
+    
+    if(req.params.id == req.userId){
       pool.getConnection((err, connection) => {
         if (err) {
           logger.error('error getting connection from pool')
@@ -179,21 +123,112 @@ module.exports = {
             .json({ message: err.toString() })
         }
         if (connection) {
-          // Alter the account.
-          let { name, dateTime, description, imageUrl, price } = req.body
+          // delete the account
           connection.query(
-            'UPDATE `meal` SET `name` = ?, `datetime` = ?, `description` = ?, `imageUrl` = ?, `price` = ? WHERE `id` = ?',
-            [name, dateTime, description, imageUrl, price, req.params.id],
+            'SELECT cookId FROM `meal` WHERE `id` = ?',
+            [req.params.id],
             (err, rows, fields) => {
-              connection.release()
               if (err) {
-                logger.info('error: meal id not found')
+                logger.error('error: ', err.toString())
+                res.status(400).json({
+                  message: err.toString()
+                })
+              } else if(rows && rows.length === 1){
+                pool.getConnection((err, connection) => {
+                  if (err) {
+                    logger.error('error getting connection from pool')
+                    res
+                      .status(500)
+                      .json({ message: err.toString() })
+                  }
+                  if (connection) {
+                    // delete the account
+                    connection.query(
+                      'DELETE FROM `meal` WHERE `id` = ?',
+                      [req.params.id],
+                      (err, rows, fields) => {
+                        connection.release()
+                        if (err) {
+                          logger.error('error: ', err.toString())
+                          res.status(400).json({
+                            message: err.toString()
+                          })
+                        } else {
+                          logger.info(rows)
+                          logger.info('result: ', rows)
+                          res.status(200).json({result: rows})
+                        }
+                      }
+                    )
+                  }
+                })
+              }else{
+                logger.info('this meal does not exist')
+                res.status(404).json({message: 'this meal does not exist'})
+              }
+            }
+          )
+        }
+      })
+    }else{
+      logger.info('this meal belongs to someone else')
+      res.status(403).json({message: 'this meal belongs to someone else'})
+    }    
+  },
+
+  alter(req, res) {
+    logger.trace('alter called')
+    logger.info(req.body)
+    if(req.userId == req.params.id){
+      pool.getConnection((err, connection) => {
+        if (err) {
+          logger.error('error getting connection from pool')
+          res
+            .status(500)
+            .json({ message: err.toString() })
+        }
+        if (connection) {
+          connection.query(
+            'SELECT * FROM `meal` WHERE `id` = ?',
+            [req.userId],
+            (err, rows, fields) => {
+              if (err) {
+                logger.error('error: ', err.toString())
                 res.status(404).json({
                   message: err.toString()
                 })
+              } else if(rows && rows.length === 1){
+                pool.getConnection((err, connection) => {
+                  if (err) {
+                    logger.error('error getting connection from pool')
+                    res
+                      .status(500)
+                      .json({ message: err.toString() })
+                  }
+                  if (connection) {
+                    // Alter the account
+                    let { name, dateTime, description, imageUrl, price } = req.body
+                    connection.query(
+                      'UPDATE `meal` SET `name` = ?, `datetime` = ?, `description` = ?, `imageUrl` = ?, `price` = ? WHERE `id` = ?',
+                      [name, dateTime, description, imageUrl, price, req.params.id],
+                      (err, rows, fields) => {
+                        connection.release()
+                        if (err) {
+                          logger.info('error: ' + err.toString)
+                          res.status(400).json({
+                            message: err.toString()
+                          })
+                        }else{
+                          logger.info('meal altert: ', rows)
+                          res.status(200).json({message: rows})
+                        }
+                      }
+                    )
+                  }
+                })
               }else{
-                logger.info('Meal altert: ', rows)
-                res.status(200).json({Altert: rows})
+                logger.info('this meal does not exist')
+                res.status(404).json({message: 'this meal does not exist'})
               }
             }
           )
@@ -219,7 +254,7 @@ module.exports = {
           .json({ message: err.toString() })
       }
       if (connection) {
-        // delete the account
+        // delete the sign up
         connection.query(
           'SELECT * FROM `meal_participants_user` WHERE `mealId` = ? && `userId` = ?',
           [req.params.id, req.userId],
@@ -271,9 +306,7 @@ module.exports = {
           .json({ message: err.toString() })
       }
       if (connection) {
-        // delete the account
         connection.query(
-          // INSERT INTO `meal` (`name`, `dateTime`, `description`, `imageUrl`, `price`) VALUES (?, ?, ?, ?, ?)
           'INSERT INTO `meal_participants_user` (`mealId`, `userId`) VALUES (?,?)',
           [req.params.id, req.userId],
           (err, rows, fields) => {

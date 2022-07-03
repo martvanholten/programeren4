@@ -24,7 +24,7 @@ module.exports = {
               res.status(422).json({
                 message: err.toString()
               })
-            } else if (rows && rows.length === 1 && rows[0].password === req.body.password){
+            } else if (rows && rows.length === 1 && rows[0].password == req.body.password){
               logger.info(
                 'passwords DID match, sending userinfo and valid token'
               )
@@ -117,7 +117,7 @@ module.exports = {
         // Check if the account exists.
         connection.query(
           'SELECT * FROM `user` WHERE `id` = ?',
-          [req.params.id],
+          [req.userId],
           (err, rows, fields) => {
             connection.release()
             if (err) {
@@ -126,7 +126,6 @@ module.exports = {
                 message: err.toString()
               })
             } else if(rows && rows.length === 1){
-              // There was a result, check the password.
               logger.info('Database responded: ')
               logger.info(rows)
                 logger.info('User requested: ', rows)
@@ -147,42 +146,48 @@ module.exports = {
     logger.trace('get called')
     logger.info(req.body)
 
-    pool.getConnection((err, connection) => {
-      if (err) {
-        logger.error('error getting connection from pool')
-        res
-          .status(500)
-          .json({ message: err.toString() })
-      }
-      if (connection) {
-        // Check if the account exists.
-        connection.query(
-          'SELECT * FROM `user` WHERE `id` = ?',
-          [req.userId],
-          (err, rows, fields) => {
-            connection.release()
-            if (err) {
-              logger.error('error: ', err.toString())
-              res.status(422).json({
-                message: err.toString()
-              })
-            } else if(rows && rows.length === 1){
-              // There was a result, check the password.
-              logger.info('Database responded: ')
-              logger.info(rows)
-                logger.info('User requested: ', rows)
-                res.status(200).json({message: rows})
-            }else{
-              logger.info('error: user id not found')
-              res.status(404).json({
-                message: 'error: user id not found'
-              })
+    if(req.params.id == req.userId){
+      pool.getConnection((err, connection) => {
+        if (err) {
+          logger.error('error getting connection from pool')
+          res
+            .status(500)
+            .json({ message: err.toString() })
+        }
+        if (connection) {
+          // Check if the account exists.
+          connection.query(
+            'SELECT * FROM `user` WHERE `id` = ?',
+            [req.params.id],
+            (err, rows, fields) => {
+              connection.release()
+              if (err) {
+                logger.error('error: ', err.toString())
+                res.status(422).json({
+                  message: err.toString()
+                })
+              } else if(rows && rows.length === 1){
+                logger.info('Database responded: ')
+                logger.info(rows)
+                  logger.info('User requested: ', rows)
+                  res.status(200).json({message: rows})
+              }else{
+                logger.info('error: user id not found')
+                res.status(404).json({
+                  message: 'error: user id not found'
+                })
+              }
             }
-          }
-        )
-      }
-    })
-  },  
+          )
+        }
+      })
+    }else{
+      logger.info('error: this is not the current user')
+        res.status(404).json({
+          message: 'error: this is not the current user'
+      })
+    }
+  },
 
   getAll(req, res) {
     logger.trace('getAll called')
@@ -252,7 +257,7 @@ module.exports = {
                 message: err.toString()
               })
             } else if(rows && rows.length === 1){
-              if(req.userId === rows[0].id){
+              if(req.userId == rows[0].id){
                 pool.getConnection((err, connection) => {
                   if (err) {
                     logger.error('error getting connection from pool')
@@ -305,22 +310,53 @@ module.exports = {
           .json({ message: err.toString() })
       }
       if (connection) {
-        // Alter the account.
-        let { firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive} = req.body
         connection.query(
-          'UPDATE `user` SET `firstName` = ?, `lastName` = ?, `emailAdress` = ?, `password` = ?, `street` = ?, `city` = ?, `phoneNumber` = ?, isActive = ? WHERE `id` = ?',
-          [firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive, req.params.id],
+          'SELECT * FROM `user` WHERE id = ?',
+          [req.userId],
           (err, rows, fields) => {
             connection.release()
+            logger.debug(rows.length)
+            if(rows.length === 0){
+              logger.debug('hello')
+            }
             if (err) {
-              logger.info('error: user id not found')
+              logger.info('error: ' + err.toString)
               res.status(400).json({
-                message: 'error: user id not found'
+                message: err.toString
+              })
+            // rows.length is 0 but the if executes
+            }else if(rows && rows.length === 1){
+              pool.getConnection((err, connection) => {
+                if (err) {
+                  logger.error('error getting connection from pool')
+                  res
+                    .status(500)
+                    .json({ message: err.toString() })
+                }
+                if (connection) {
+                  // Alter the account.
+                  let { firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive} = req.body
+                  connection.query(
+                    'UPDATE `user` SET `firstName` = ?, `lastName` = ?, `emailAdress` = ?, `password` = ?, `street` = ?, `city` = ?, `phoneNumber` = ?, isActive = ? WHERE `id` = ?',
+                    [firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive, req.params.id],
+                    (err, rows, fields) => {
+                      connection.release()
+                      if (err) {
+                        logger.info('error: ' + err.toString)
+                        res.status(400).json({
+                          message: err.toString
+                        })
+                      }else{
+                        logger.info('message: ', rows)
+                        res.status(200).json({message: rows})
+                      }
+                    }
+                  )
+                }
               })
             }else{
-              
-              logger.info('User altert: ', rows)
-              res.status(200).json({Altert: rows})
+              logger.info('message: user not found')
+              res.status(404).json({message: 'user not found'})
             }
           }
         )
