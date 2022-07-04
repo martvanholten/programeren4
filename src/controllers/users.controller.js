@@ -201,48 +201,40 @@ module.exports = {
   getOwn(req, res) {
     logger.trace('get called')
     logger.info(req.body)
-
-    if(req.params.id == req.userId){
-      pool.getConnection((err, connection) => {
-        if (err) {
-          logger.error('error getting connection from pool')
-          res
-            .status(500)
-            .json({ message: err.toString() })
-        }
-        if (connection) {
-          // Check if the account exists.
-          connection.query(
-            'SELECT * FROM `user` WHERE `id` = ?',
-            [req.params.id],
-            (err, rows, fields) => {
-              connection.release()
-              if (err) {
-                logger.error('error: ', err.toString())
-                res.status(422).json({
-                  message: err.toString()
-                })
-              } else if(rows && rows.length === 1){
-                logger.info('Database responded: ')
-                logger.info(rows)
-                  logger.info('User requested: ', rows)
-                  res.status(200).json({message: rows})
-              }else{
-                logger.info('error: user id not found')
-                res.status(404).json({
-                  message: 'error: user id not found'
-                })
-              }
+    pool.getConnection((err, connection) => {
+      if (err) {
+        logger.error('error getting connection from pool')
+        res
+          .status(500)
+          .json({ message: err.toString() })
+      }
+      if (connection) {
+        // Check if the account exists.
+        connection.query(
+          'SELECT * FROM `user` WHERE `id` = ?',
+          [req.userId],
+          (err, rows, fields) => {
+            connection.release()
+            if (err) {
+              logger.error('error: ', err.toString())
+              res.status(422).json({
+                message: err.toString()
+              })
+            } else if(rows && rows.length === 1){
+              logger.info('Database responded: ')
+              logger.info(rows)
+                logger.info('User requested: ', rows)
+                res.status(200).json({message: rows})
+            }else{
+              logger.info('error: user id not found')
+              res.status(404).json({
+                message: 'error: user id not found'
+              })
             }
-          )
-        }
-      })
-    }else{
-      logger.info('error: this is not the current user')
-        res.status(404).json({
-          message: 'error: this is not the current user'
-      })
-    }
+          }
+        )
+      }
+    })
   },
 
   getAll(req, res) {
@@ -266,28 +258,78 @@ module.exports = {
       }
     }
 
-    pool.getConnection(function (err, connection) {
-      if (err) {
-        res.status(500).json({
-          error: err.toString()
-        })
-      }
-      if (connection) {
-        connection.query(queryString,
-        [firstName, isActive], 
-        (err, rows, fields) => {
-          connection.release()
-          if (err) {
-            res.status(422).json({
-              message: err.toString()
-            })
-          }else{
-            logger.info(rows)
-            res.status(200).json( {message: rows})
-          }
-        })
-      }
-    })
+    if(firstName){
+      pool.getConnection(function (err, connection) {
+        if (err) {
+          res.status(500).json({
+            error: err.toString()
+          })
+        }
+        logger.debug(queryString)
+        if (connection) {
+          connection.query(queryString,
+          [firstName, isActive], 
+          (err, rows, fields) => {
+            connection.release()
+            if (err) {
+              res.status(422).json({
+                message: err.toString()
+              })
+            }else{
+              logger.info(rows)
+              res.status(200).json( {message: rows})
+            }
+          })
+        }
+      })
+    }else if(isActive){
+      pool.getConnection(function (err, connection) {
+        if (err) {
+          res.status(500).json({
+            error: err.toString()
+          })
+        }
+        logger.debug(queryString)
+        if (connection) {
+          connection.query(queryString,
+          [isActive], 
+          (err, rows, fields) => {
+            connection.release()
+            if (err) {
+              res.status(422).json({
+                message: err.toString()
+              })
+            }else{
+              logger.info(rows)
+              res.status(200).json( {message: rows})
+            }
+          })
+        }
+      })
+    }else{
+      pool.getConnection(function (err, connection) {
+        if (err) {
+          res.status(500).json({
+            error: err.toString()
+          })
+        }
+        logger.debug(queryString)
+        if (connection) {
+          connection.query(queryString,
+          (err, rows, fields) => {
+            connection.release()
+            if (err) {
+              res.status(422).json({
+                message: err.toString()
+              })
+            }else{
+              logger.info(rows)
+              res.status(200).json( {message: rows})
+            }
+          })
+        }
+      })
+    }
   },
 
   delete(req, res) {
@@ -347,7 +389,7 @@ module.exports = {
               }
             }else{
               logger.info('there is no account')
-              res.status(400).json({message: 'there is no account'})
+              res.status(404).json({message: 'there is no account'})
             }
           }
         )

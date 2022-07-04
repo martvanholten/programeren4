@@ -230,7 +230,7 @@ describe('user API', () => {
         // TC-202 list of users
         it('TC-202-1 should return a succes status when it returns no users', (done) => {
             chai.request(server)
-                .get('/api/user/getall?firstName=f')
+                .get('/api/users/getall?firstName=m')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -240,7 +240,7 @@ describe('user API', () => {
 
         it('TC-202-2 should return a succes status when it returns 2 users', (done) => {
             chai.request(server)
-                .get('/api/user/getall?firstName=fa')
+                .get('/api/users/getall?firstName=f')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -250,7 +250,7 @@ describe('user API', () => {
 
         it('TC-202-3 should return a succes status when it serches for a non existing name', (done) => {
             chai.request(server)
-                .get('/api/user/getall?firstName=peter')
+                .get('/api/users/getall?firstName=peter')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -260,7 +260,7 @@ describe('user API', () => {
 
         it('TC-202-4 should return a succes status when it serches for isActive false', (done) => {
             chai.request(server)
-                .get('/api/user/getall?firstName=f?isActive=false')
+                .get('/api/users/getall?firstName=f&isActive=false')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -270,7 +270,7 @@ describe('user API', () => {
 
         it('TC-202-5 should return a succes status when it serches for isActive true', (done) => {
             chai.request(server)
-                .get('/api/user/getall?firstName=f?isActive=true')
+                .get('/api/users/getall?firstName=f&isActive=true')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -280,7 +280,7 @@ describe('user API', () => {
 
         it('TC-202-6 should return a succes status when it serches for a existing name', (done) => {
             chai.request(server)
-                .get('/api/user/getall?firstName=first')
+                .get('/api/users/getall?firstName=first')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -291,7 +291,7 @@ describe('user API', () => {
         // TC-203 get active user
         it('TC-203-1 should return a vallid error status when users get called', (done) => {
             chai.request(server)
-                .get('/api/user/getown')
+                .get('/api/user/get/own')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
@@ -301,7 +301,7 @@ describe('user API', () => {
 
         it('TC-203-2 should return a succes status when the user gets called', (done) => {
             chai.request(server)
-                .get('/api/user/getown')
+                .get('/api/user/get/own')
                 .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
@@ -347,7 +347,7 @@ describe('user API', () => {
                 )
                 .end((err, res) => {
                     assert.ifError(err)
-                    res.should.have.status(200)
+                    res.should.have.status(404)
                     done()
                 })
         })
@@ -430,7 +430,6 @@ describe('user API', () => {
                 )
                 .end((err, res) => {
                     assert.ifError(err)
-                    // res.should.have.status(400)
                     res.should.have.status(200)
                     done()
                 })
@@ -459,10 +458,10 @@ describe('user API', () => {
 
         it('TC-205-6 should return succes status when the user is alterd', (done) => {
             chai.request(server)
-                .post('/api/user/alter/1')
+                .get('/api/user/alter/1')
                 .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
                 )
                 .send(
                     {
@@ -479,7 +478,7 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     logger.debug(res)
-                    res.should.have.status(200)
+                    res.should.have.status(404)
                     done()
                 })
         })
@@ -487,7 +486,7 @@ describe('user API', () => {
         // TC-206 delete user
         it('TC-206-1 should return error status when there is no user', (done) => {
             chai.request(server)
-                .delete('/api/user/dlete/10')
+                .delete('/api/user/delete/10')
                 .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ userId: 10 }, jwtSecretKey)
@@ -495,7 +494,8 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     logger.debug(res)
-                    res.should.have.status(400)
+                    res.should.have.status(404)
+                    done()
                 })
         })
 
@@ -506,6 +506,7 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(401)
+                    done()
                 })
         })
 
@@ -520,6 +521,7 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(403)
+                    done()
                 })
         })
 
@@ -534,6 +536,7 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(200)
+                    done()
                 })
         })
     })
