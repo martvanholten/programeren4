@@ -509,7 +509,7 @@ describe('user API', () => {
                 })
         })
 
-        it('TC-206-3 should return error status when there is no user', (done) => {
+        it('TC-206-3 should return error status when the user is not the same account', (done) => {
             chai.request(server)
                 .delete('/api/user/delete/1')
                 .set(

@@ -83,15 +83,38 @@ module.exports = {
           'INSERT INTO `user` (`firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`) VALUES (?, ?, ?, ?, ?, ?)',
           [firstName, lastName, emailAdress, password, street, city],
           (err, rows, fields) => {
-            connection.release()
             if (err) {
               logger.error(err.toString())
               res.status(409).json({
                 message: err.toString()
               })
             } else {
-              logger.info('result: ', rows)
-              res.status(201).json({result: rows})
+              pool.getConnection((err, connection) => {
+                if (err) {
+                  logger.error(err.toString())
+                  res
+                    .status(500)
+                    .json({ message: err.toString() })
+                }
+                if (connection) {
+                  connection.query(
+                    'SELECT * FROM `user` WHERE `firstName` = ?',
+                    [firstName],
+                    (err, rows, fields) => {
+                      connection.release()
+                      if (err) {
+                        logger.error(err.toString())
+                        res.status(409).json({
+                          message: err.toString()
+                        })
+                      } else {
+                        logger.info('result: ', rows)
+                        res.status(201).json({result: rows})
+                      }
+                    }
+                  )
+                }
+              })
             }
           }
         )
@@ -126,10 +149,43 @@ module.exports = {
                 message: err.toString()
               })
             } else if(rows && rows.length === 1){
-              logger.info('Database responded: ')
-              logger.info(rows)
-                logger.info('User requested: ', rows)
-                res.status(200).json({message: rows})
+              userInfo =rows
+              pool.getConnection((err, connection) => {
+                if (err) {
+                  logger.error('error getting connection from pool')
+                  res
+                    .status(500)
+                    .json({ message: err.toString() })
+                }
+                if (connection) {
+                  // Check if the account exists.
+                  connection.query(
+                    'SELECT * FROM `meal` WHERE `dateTime` >= "04-07-2022 10:00:00"',
+                    (err, rows, fields) => {
+                      logger.info(rows)
+                      logger.info(rows.length)
+                      connection.release()
+                      if (err) {
+                        logger.error('error: ', err.toString())
+                        res.status(422).json({
+                          message: err.toString()
+                        })
+                      } else if(rows && rows.length >= 1){
+                        logger.info('Database responded: ')
+                        logger.info('user: ', userInfo)
+                          logger.info('Avalibale requested: ', rows)
+                          res.status(200).json({message: userInfo, meals: rows})
+                      }else{
+                        logger.info(userInfo, 'no meals to sign up for')
+                        res.status(404).json({
+                          user: userInfo,
+                          meals: 'no meals to sign up for'
+                        })
+                      }
+                    }
+                  )
+                }
+              })
             }else{
               logger.info('error: user id not found')
               res.status(404).json({
@@ -195,18 +251,18 @@ module.exports = {
     
     let { firstName, isActive } = req.query
 
-    let queryString = 'SELECT * FROM user'
+    let queryString = 'SELECT * FROM `user`'
     if(firstName || isActive){
       queryString += ' WHERE '
       if(firstName){
-        queryString += 'firstName LIKE ?'
+        queryString += '`firstName` LIKE ?'
         firstName = '%' + firstName + '%'
       }
       if(firstName&&isActive){
         queryString += ' AND '
       } 
       if(isActive){
-        queryString += 'isActive = ?'
+        queryString += '`isActive` = ?'
       }
     }
 
@@ -258,6 +314,7 @@ module.exports = {
               })
             } else if(rows && rows.length === 1){
               if(req.userId == rows[0].id){
+                userInfo = rows
                 pool.getConnection((err, connection) => {
                   if (err) {
                     logger.error('error getting connection from pool')
@@ -277,8 +334,8 @@ module.exports = {
                             message: err.toString()
                           })
                         } else {
-                          logger.info('result: ', rows)
-                          res.status(200).json({result: rows})
+                          logger.info('result: ', userInfo)
+                          res.status(200).json({result: userInfo})
                         }
                       }
                     )
@@ -347,8 +404,8 @@ module.exports = {
                           message: err.toString
                         })
                       }else{
-                        logger.info('message: ', rows)
-                        res.status(200).json({message: rows})
+                        logger.info('message: ', req.body)
+                        res.status(200).json({message: req.body})
                       }
                     }
                   )

@@ -1,8 +1,6 @@
 const config = require('../config/config')
 const logger = config.logger
-const assert = require('assert')
 const pool = require('../config/database')
-const { runInNewContext } = require('vm')
 
 // test token id 50: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUwLCJpYXQiOjE2NTY3OTU3ODksImV4cCI6MTY1NzgzMjU4OX0.m-18kePSm7VOiPVRQwYdsSAChxJxTJTPnGT1mulJ4II
 // valid test token id 1: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTY1NjgwMDI1MCwiZXhwIjoxNjU3ODM3MDUwfQ.HlZmtjBV8fgFGKtGschduzqAneYnSgN-bCOiu5el6kQ
@@ -26,17 +24,38 @@ module.exports = {
           'INSERT INTO `meal` (`name`, `dateTime`, `description`, `imageUrl`, `price`, `cookId`) VALUES (?, ?, ?, ?, ?, ?)',
           [name, dateTime, description, imageUrl, price, req.userId],
           (err, rows, fields) => {
-            connection.release()
             if (err) {
               logger.error('error: ', err.toString())
               res.status(400).json({
                 message: err.toString()
               })
             } else {
-              logger.info(rows)
-              logger.trace(rows)
-              logger.info('result: ', rows)
-              res.status(201).json({result: rows})
+              pool.getConnection((err, connection) => {
+                if (err) {
+                  logger.error('error getting connection from pool')
+                  res
+                    .status(500)
+                    .json({ message: err.toString() })
+                }
+                if (connection) {
+                  connection.query(
+                    'SELECT * FROM `meal` WHERE `name` = ?',
+                    [name],
+                    (err, rows, fields) => {
+                      connection.release()
+                      if (err) {
+                        logger.error('error: ', err.toString())
+                        res.status(400).json({
+                          message: err.toString()
+                        })
+                      } else {
+                        logger.info('result: ', rows)
+                        res.status(201).json({result: rows})
+                      }
+                    }
+                  )
+                }
+              })
             }
           }
         )
@@ -125,7 +144,7 @@ module.exports = {
         if (connection) {
           // delete the account
           connection.query(
-            'SELECT cookId FROM `meal` WHERE `id` = ?',
+            'SELECT * FROM `meal` WHERE `id` = ?',
             [req.params.id],
             (err, rows, fields) => {
               if (err) {
@@ -134,6 +153,7 @@ module.exports = {
                   message: err.toString()
                 })
               } else if(rows && rows.length === 1){
+                mealInfo = rows
                 pool.getConnection((err, connection) => {
                   if (err) {
                     logger.error('error getting connection from pool')
@@ -155,8 +175,8 @@ module.exports = {
                           })
                         } else {
                           logger.info(rows)
-                          logger.info('result: ', rows)
-                          res.status(200).json({result: rows})
+                          logger.info('result: ', mealInfo)
+                          res.status(200).json({result: mealInfo})
                         }
                       }
                     )
@@ -198,6 +218,7 @@ module.exports = {
                   message: err.toString()
                 })
               } else if(rows && rows.length === 1){
+                mealInfo = rows
                 pool.getConnection((err, connection) => {
                   if (err) {
                     logger.error('error getting connection from pool')
@@ -219,8 +240,8 @@ module.exports = {
                             message: err.toString()
                           })
                         }else{
-                          logger.info('meal altert: ', rows)
-                          res.status(200).json({message: rows})
+                          logger.info('meal altert: ', mealInfo)
+                          res.status(200).json({message: mealInfo})
                         }
                       }
                     )

@@ -1,4 +1,4 @@
-const mysql = require('mysql')
+const mysql = require('mysql2')
 const logger = require('./config').logger
 const dbconfig = require('./config').dbconfig
 
