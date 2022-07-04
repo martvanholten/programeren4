@@ -1,4 +1,4 @@
-process.env.DB_DATABASE = process.env.DB_DATABASE || 'test'
+process.env.DB_DATABASE = process.env.DB_DATABASE || 'share-a-meal-testdb'
 process.env.LOGLEVEL = 'warn'
 
 const chai = require('chai')
@@ -334,107 +334,107 @@ describe('meal API', () => {
             })
         })
 
-        // // TC-401 sign up for a meal
-        // it('TC-401-1 should return valid error status when a user is not logged in', (done) => {
-        //     chai.request(server)
-        //         .post('/api/meal/signon/2')
-        //         .end((err, res) => {
-        //             assert.ifError(err)
-        //             res.should.have.status(401)
-        //             done()
-        //         })
-        // })
+        // TC-401 sign up for a meal
+        it('TC-401-1 should return valid error status when a user is not logged in', (done) => {
+            chai.request(server)
+                .post('/api/meal/signon/2')
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(401)
+                    done()
+                })
+        })
 
-        // it('TC-401-2 should return valid error status when a meal does not exist', (done) => {
-        //     chai.request(server)
-        //         .post('/api/meal/signon/10')
-        //         .send(
-        //             'authorization',
-        //             'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
-        //         )
-        //         .end((err, res) => {
-        //             assert.ifError(err)
-        //             res.should.have.status(404)
-        //             done()
-        //         })
-        // })
+        it('TC-401-2 should return valid error status when a meal does not exist', (done) => {
+            chai.request(server)
+                .post('/api/meal/signon/10')
+                .set(
+                    'authorization',
+                    'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
+                )
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(404)
+                    done()
+                })
+        })
 
-        // it('TC-401-3 should return valid sucess status when a user is signed up', (done) => {
-        //     chai.request(server)
-        //         .post('/api/meal/signon/2')
-        //         .send(
-        //             'authorization',
-        //             'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
-        //         )
-        //         .end((err, res) => {
-        //             assert.ifError(err)
-        //             res.should.have.status(200)
-        //             done()
-        //         })
-        // })
+        it('TC-401-3 should return valid sucess status when a user is signed up', (done) => {
+            chai.request(server)
+                .post('/api/meal/signon/2')
+                .set(
+                    'authorization',
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
+                )
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(200)
+                    done()
+                })
+        })
         
         
-        // // TC-402 sign off for a meal
-        // before((done) => {
-        //     logger.debug('beforeEach called')
-        //     // maak de testdatabase opnieuw aan zodat we onze testen kunnen uitvoeren.
-        //     pool.getConnection(function (err, connection) {
-        //         if (err) throw err // not connected!
-        //         try {
-        //             connection.query(
-        //                 CLEAR_DB + INSERT_USER  + INSERT_MEALS + INSERT_MEALS_USER,
-        //                 function (error, results, fields) {
-        //                     // When done with the connection, release it.
-        //                     connection.release()
-        //                     // Handle error after the release.
-        //                     if (error) throw error
-        //                     // Let op dat je done() pas aanroept als de query callback eindigt!
-        //                     logger.debug('beforeEach done')
-        //                     done()
-        //                 }
-        //             )
-        //         } catch (error) {
-        //             console.error(error);
-        //         }
-        //     })
-        // })
+        // TC-402 sign off for a meal
+        before((done) => {
+            logger.debug('beforeEach called')
+            // maak de testdatabase opnieuw aan zodat we onze testen kunnen uitvoeren.
+            pool.getConnection(function (err, connection) {
+                if (err) throw err // not connected!
+                try {
+                    connection.query(
+                        CLEAR_DB + INSERT_USER  + INSERT_MEALS + INSERT_MEALS_USER,
+                        function (error, results, fields) {
+                            // When done with the connection, release it.
+                            connection.release()
+                            // Handle error after the release.
+                            if (error) throw error
+                            // Let op dat je done() pas aanroept als de query callback eindigt!
+                            logger.debug('beforeEach done')
+                            done()
+                        }
+                    )
+                } catch (error) {
+                    console.error(error);
+                }
+            })
+        })
 
-        // it('TC-402-1 should return valid error status when a user is not logged in', (done) => {
-        //     chai.request(server)
-        //         .set('/api/meal/signoff/1')
-        //         .end((err, res) => {
-        //             assert.ifError(err)
-        //             res.should.have.status(401)
-        //             done()
-        //         })
-        // })
+        it('TC-402-1 should return valid error status when a user is not logged in', (done) => {
+            chai.request(server)
+                .post('/api/meal/signon/1')
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(401)
+                    done()
+                })
+        })
 
-        // it('TC-402-2 should return valid error status when a meal does not exist', (done) => {
-        //     chai.request(server)
-        //         .delete('/api/meal/signoff/10')
-        //         .set(
-        //             'authorization',
-        //             'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
-        //         )
-        //         .end((err, res) => {
-        //             assert.ifError(err)
-        //             res.should.have.status(404)
-        //             done()
-        //         })
-        // })
+        it('TC-402-2 should return valid error status when a meal does not exist', (done) => {
+            chai.request(server)
+                .post('/api/meal/signon/10')
+                .set(
+                    'authorization',
+                    'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
+                )
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(404)
+                    done()
+                })
+        })
 
-        // it('TC-402-3 should return valid sucess status when a user is signed off', (done) => {
-        //     chai.request(server)
-        //         .delete('/api/meal/signon/2')
-        //         .set(
-        //             'authorization',
-        //             'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
-        //         )
-        //         .end((err, res) => {
-        //             assert.ifError(err)
-        //             res.should.have.status(200)
-        //             done()
-        //         })
-        // })
+        it('TC-402-3 should return valid sucess status when a user is signed off', (done) => {
+            chai.request(server)
+                .post('/api/meal/signon/1')
+                .set(
+                    'authorization',
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
+                )
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(200)
+                    done()
+                })
+        })
     })
 })
