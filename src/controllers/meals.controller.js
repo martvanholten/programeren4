@@ -2,11 +2,7 @@ const config = require('../config/config')
 const logger = config.logger
 const pool = require('../config/database')
 
-// test token id 50: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUwLCJpYXQiOjE2NTY3OTU3ODksImV4cCI6MTY1NzgzMjU4OX0.m-18kePSm7VOiPVRQwYdsSAChxJxTJTPnGT1mulJ4II
-// valid test token id 1: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTY1NjgwMDI1MCwiZXhwIjoxNjU3ODM3MDUwfQ.HlZmtjBV8fgFGKtGschduzqAneYnSgN-bCOiu5el6kQ
-
 module.exports = {
-
   register(req, res) {
     logger.trace('Meal registration called')
     logger.info(req.body)
@@ -49,8 +45,8 @@ module.exports = {
                           message: err.toString()
                         })
                       } else {
-                        logger.info('result: ', rows)
-                        res.status(201).json({result: rows})
+                        logger.info('message: ', rows)
+                        res.status(201).json({message: rows})
                       }
                     }
                   )
@@ -175,8 +171,8 @@ module.exports = {
                           })
                         } else {
                           logger.info(rows)
-                          logger.info('result: ', mealInfo)
-                          res.status(200).json({result: mealInfo})
+                          logger.info('message: ', mealInfo)
+                          res.status(200).json({message: mealInfo})
                         }
                       }
                     )

@@ -56,9 +56,9 @@ module.exports = {
                   message: 'error: user does not exist'
                 })
             }else{
-              logger.info('error user password or email invalid')
+              logger.info('error user password invalid')
               res.status(400).json({
-                message: 'error: user password or email invalid'
+                message: 'error: user password invalid'
               })
             }
         })
@@ -118,9 +118,6 @@ module.exports = {
             }
           }
         )
-        // pool.end((err)=>{
-        //   console.log('Pool was colsed');
-        // })
       }
     })
   },
@@ -160,7 +157,7 @@ module.exports = {
                 if (connection) {
                   // Check if the account exists.
                   connection.query(
-                    'SELECT * FROM `meal` WHERE `dateTime` >= "04-07-2022 10:00:00"',
+                    'SELECT * FROM `meal` WHERE `dateTime` > "04-07-2022 10:00:00"',
                     (err, rows, fields) => {
                       logger.info(rows)
                       logger.info(rows.length)
@@ -423,7 +420,6 @@ module.exports = {
               res.status(400).json({
                 message: err.toString
               })
-            // rows.length is 0 but the if executes
             }else if(rows && rows.length === 1){
               pool.getConnection((err, connection) => {
                 if (err) {
