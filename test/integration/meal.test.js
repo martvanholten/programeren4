@@ -1,4 +1,4 @@
-process.env.DB_DATABASE = process.env.DB_DATABASE || 'share-a-meal-testdb'
+process.env.DB_DATABASE = process.env.DB_DATABASE || 'share-a-meal'
 process.env.LOGLEVEL = 'warn'
 
 const chai = require('chai')
