@@ -6,42 +6,42 @@ on:
             - dev
 
 jobs:
-    # integrationtests:
-    #     runs-on: ubuntu-latest
-    #     env:
-    #         MYSQL_ROOT_PASSWORD: root # default root password to use must be 'root'
-    #         DB_HOST: db-mysql-ams3-37313-do-user-2119860-0.b.db.ondigitalocean.com
-    #         DB_PORT: 25060
-    #         DB_DATABASE: share-a-meal-testdb
-    #         DB_USER: '1234567'
-    #         DB_PASSWORD: secret
-    #     services:
-    #         mysql:
-    #             image: mysql:5.7
-    #             ports:
-    #                 - 3306
-    #     steps:
-    #         - uses: actions/checkout@v2
+    integrationtests:
+        runs-on: ubuntu-latest
+        env:
+            MYSQL_ROOT_PASSWORD: root # default root password to use must be 'root'
+            DB_HOST: db-mysql-ams3-37313-do-user-2119860-0.b.db.ondigitalocean.com
+            DB_PORT: 25060
+            DB_DATABASE: share-a-meal-testdb
+            DB_USER: 1234567
+            DB_PASSWORD: secret
+        services:
+            mysql:
+                image: mysql:5.7
+                ports:
+                    - 3306
+        steps:
+            - uses: actions/checkout@v2
 
-    #         - name: Start MySQL connection from host
-    #           run: |
-    #               sudo /etc/init.d/mysql start
-    #               sudo apt-get install -y mysql-client
-    #               mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "SHOW DATABASES;"
-    #               mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE ${{env.DB_DATABASE}};"
+            - name: Start MySQL connection from host
+              run: |
+                  sudo /etc/init.d/mysql start
+                  sudo apt-get install -y mysql-client
+                  mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "SHOW DATABASES;"
+                  mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE ${{env.DB_DATABASE}};"
 
-    #         - name: Import the database
-    #           run: |
-    #               mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} < share-a-meal.sql
-    #               mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} -e "SHOW TABLES;"
+            - name: Import the database
+              run: |
+                  mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} < share-a-meal.sql
+                  mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} -e "SHOW TABLES;"
 
-    #         - name: npm install
-    #           run: |
-    #               npm install
+            - name: npm install
+              run: |
+                  npm install
 
-    #         - name: npm test
-    #           run: |
-    #               npm test -- --DB_PASSWORD $MYSQL_ROOT_PASSWORD --DB_USER root --DB_NAME $DB_DATABASE
+            - name: npm test
+              run: |
+                  npm test -- --DB_PASSWORD $MYSQL_ROOT_PASSWORD --DB_USER root --DB_NAME $DB_DATABASE
 
     deploy:
         needs: integrationtests

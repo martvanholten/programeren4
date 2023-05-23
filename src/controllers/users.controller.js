@@ -109,7 +109,8 @@ module.exports = {
                         })
                       } else {
                         logger.info('result: ', rows)
-                        res.status(201).json({result: rows})
+                        res.status(201).json({
+                          results: {rows}})
                       }
                     }
                   )
@@ -171,7 +172,7 @@ module.exports = {
                         logger.info('Database responded: ')
                         logger.info('user: ', userInfo)
                           logger.info('Avalibale requested: ', rows)
-                          res.status(200).json({message: userInfo, meals: rows})
+                          res.status(200).json({results: {userInfo}, meals: {rows}})
                       }else{
                         logger.info(userInfo, 'no meals to sign up for')
                         res.status(404).json({
@@ -221,7 +222,7 @@ module.exports = {
               logger.info('Database responded: ')
               logger.info(rows)
                 logger.info('User requested: ', rows)
-                res.status(200).json({message: rows})
+                res.status(200).json({results: {rows}})
             }else{
               logger.info('error: user id not found')
               res.status(404).json({
@@ -274,7 +275,7 @@ module.exports = {
               })
             }else{
               logger.info(rows)
-              res.status(200).json( {message: rows})
+              res.status(200).json( {results: {rows}})
             }
           })
         }
@@ -298,7 +299,7 @@ module.exports = {
               })
             }else{
               logger.info(rows)
-              res.status(200).json( {message: rows})
+              res.status(200).json( {results: {rows}})
             }
           })
         }
@@ -321,7 +322,7 @@ module.exports = {
               })
             }else{
               logger.info(rows)
-              res.status(200).json( {message: rows})
+              res.status(200).json( {results: {rows}})
             }
           })
         }
@@ -374,7 +375,7 @@ module.exports = {
                           })
                         } else {
                           logger.info('result: ', userInfo)
-                          res.status(200).json({result: userInfo})
+                          res.status(200).json({results: {userInfo}})
                         }
                       }
                     )
@@ -418,7 +419,7 @@ module.exports = {
             if (err) {
               logger.info('error: ' + err.toString)
               res.status(400).json({
-                message: err.toString
+                message: err.toString()
               })
             }else if(rows && rows.length === 1){
               pool.getConnection((err, connection) => {
@@ -443,7 +444,7 @@ module.exports = {
                         })
                       }else{
                         logger.info('message: ', req.body)
-                        res.status(200).json({message: req.body})
+                        res.status(200).json({results: req.body})
                       }
                     }
                   )

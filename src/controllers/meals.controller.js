@@ -46,7 +46,7 @@ module.exports = {
                         })
                       } else {
                         logger.info('message: ', rows)
-                        res.status(201).json({message: rows})
+                        res.status(201).json({results: {rows}})
                       }
                     }
                   )
@@ -86,7 +86,7 @@ module.exports = {
             logger.info('Database responded: ')
             logger.info(rows)
             logger.info('User requested: ', rows)
-            res.status(200).json({result: rows})
+            res.status(200).json({results: {rows}})
             }else {
               logger.info('error: user id not found')
               res.status(404).json({
@@ -118,7 +118,7 @@ module.exports = {
             })
           }else{
             logger.trace('results: ', rows)
-            res.status(200).json({results: rows})
+            res.status(200).json({results: {rows}})
           }
         })
       }
@@ -172,7 +172,7 @@ module.exports = {
                         } else {
                           logger.info(rows)
                           logger.info('message: ', mealInfo)
-                          res.status(200).json({message: mealInfo})
+                          res.status(200).json({results: {mealInfo}})
                         }
                       }
                     )
@@ -195,7 +195,6 @@ module.exports = {
   alter(req, res) {
     logger.trace('alter called')
     logger.info(req.body)
-    if(req.userId == req.params.id){
       pool.getConnection((err, connection) => {
         if (err) {
           logger.error('error getting connection from pool')
@@ -206,7 +205,7 @@ module.exports = {
         if (connection) {
           connection.query(
             'SELECT * FROM `meal` WHERE `id` = ?',
-            [req.userId],
+            [req.params.id],
             (err, rows, fields) => {
               if (err) {
                 logger.error('error: ', err.toString())
@@ -214,35 +213,42 @@ module.exports = {
                   message: err.toString()
                 })
               } else if(rows && rows.length === 1){
-                mealInfo = rows
-                pool.getConnection((err, connection) => {
-                  if (err) {
-                    logger.error('error getting connection from pool')
-                    res
-                      .status(500)
-                      .json({ message: err.toString() })
-                  }
-                  if (connection) {
-                    // Alter the account
-                    let { name, dateTime, description, imageUrl, price } = req.body
-                    connection.query(
-                      'UPDATE `meal` SET `name` = ?, `datetime` = ?, `description` = ?, `imageUrl` = ?, `price` = ? WHERE `id` = ?',
-                      [name, dateTime, description, imageUrl, price, req.params.id],
-                      (err, rows, fields) => {
-                        connection.release()
-                        if (err) {
-                          logger.info('error: ' + err.toString)
-                          res.status(400).json({
-                            message: err.toString()
-                          })
-                        }else{
-                          logger.info('meal altert: ', mealInfo)
-                          res.status(200).json({message: mealInfo})
+                if(rows[0].cookId == req.userId){
+                  mealInfo = rows
+                  pool.getConnection((err, connection) => {
+                    if (err) {
+                      logger.error('error getting connection from pool')
+                      res
+                        .status(500)
+                        .json({ message: err.toString() })
+                    }
+                    if (connection) {
+                      // Alter the account
+                      let { name, dateTime, description, imageUrl, price } = req.body
+                      connection.query(
+                        'UPDATE `meal` SET `name` = ?, `datetime` = ?, `description` = ?, `imageUrl` = ?, `price` = ? WHERE `id` = ?',
+                        [name, dateTime, description, imageUrl, price, req.params.id],
+                        (err, rows, fields) => {
+                          connection.release()
+                          if (err) {
+                            logger.info('error: ' + err.toString)
+                            res.status(400).json({
+                              message: err.toString()
+                            })
+                          }else{
+                            logger.info('meal altert: ', {mealInfo})
+                            res.status(200).json({results: {mealInfo}})
+                          }
                         }
-                      }
-                    )
-                  }
-                })
+                      )
+                    }
+                  })
+                }else{
+                  logger.info('this is not your meal')
+                  res.status(403).json({
+                    message: 'this is not your meal'
+                  })
+                }
               }else{
                 logger.info('this meal does not exist')
                 res.status(404).json({message: 'this meal does not exist'})
@@ -251,12 +257,6 @@ module.exports = {
           )
         }
       })
-    }else{
-      logger.info('this is not your meal')
-        res.status(403).json({
-          message: 'this is not your meal'
-        })
-    }
   },
 
   signOn(req, res) {
@@ -308,7 +308,7 @@ module.exports = {
                         }else {
                           logger.info(mealInfo)
                           logger.info('Signed off for the meal')
-                          res.status(200).json({message: mealInfo, result: "signed off for the meal"})
+                          res.status(200).json({results: {mealInfo}, message: "signed off for the meal"})
                         }
                       }
                     )
@@ -326,7 +326,7 @@ module.exports = {
                         } else {
                           logger.info(mealInfo)
                           logger.info('Singed up for the meal')
-                          res.status(200).json({message: mealInfo, result: "signed up for the meal"})
+                          res.status(200).json({results: {mealInfo}, message: "signed up for the meal"})
                         }
                     })
                   }
@@ -369,7 +369,7 @@ module.exports = {
             logger.info('Database responded: ')
             logger.info(rows)
             logger.info('meal requested: ', rows)
-            res.status(200).json({result: rows})
+            res.status(200).json({results: {rows}})
             }else {
               logger.info('error: meal id not found')
               res.status(404).json({
@@ -421,7 +421,7 @@ module.exports = {
                     logger.info('Database responded: ')
                     logger.info(rows)
                     logger.info('participants requested: ', rows)
-                    res.status(200).json({result: rows})
+                    res.status(200).json({results: {rows}})
                   }
                 }
               )

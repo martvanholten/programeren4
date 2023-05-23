@@ -10,7 +10,7 @@ module.exports = {
       next()
     }else{
       logger.info('Eamil is not vallid')
-      res.status(400).json({result: 'Email in not vallid'})
+      res.status(400).json({message: 'error: e-mail is not vallid'})
     }
   },
 
@@ -20,7 +20,7 @@ module.exports = {
       next()
     }else{
       logger.info('Phonenumber is not vallid')
-      res.status(400).json({result: 'Phonenumber in not vallid'})
+      res.status(400).json({message: 'error: phonenumber in not vallid'})
     }
   },
 
@@ -101,7 +101,7 @@ module.exports = {
     if (!authHeader) {
       logger.warn('Authorization header missing!')
       res.status(401).json({
-        error: 'Authorization header missing!',
+        message: 'Authorization header missing!',
         datetime: new Date().toISOString()
       })
     } else {
@@ -112,7 +112,7 @@ module.exports = {
         if (err) {
           logger.warn('Not authorized')
           res.status(401).json({
-            error: 'Not authorized',
+            message: 'Not authorized',
           })
         }
         if (payload) {
