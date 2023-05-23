@@ -72,6 +72,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string').that.contains('error')
                     done()
                 })
         })
@@ -87,6 +90,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string').that.contains('error')
                     done()
                 })
         })
@@ -102,6 +108,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string').that.contains('error')
                     done()
                 })
         })
@@ -117,6 +126,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string').that.contains('error')
                     done()
                 })
         })
@@ -132,6 +144,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -147,6 +162,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -166,6 +184,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -185,6 +206,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -204,6 +228,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(409)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -244,6 +271,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -284,6 +314,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -295,6 +328,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -309,6 +345,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -320,6 +359,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -334,20 +376,26 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
 
         it('TC-204-3 should return a vallid succes status when the requsted user does exist', (done) => {
             chai.request(server)
-                .get('/api/user/1')
+                .get('/api/user/2')
                 .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
+                    'Bearer ' + jwt.sign({ userId: 2 }, jwtSecretKey)
                 )
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
+                    // res.body.should.be.an('object');
+                    // let { message } = res.body
+                    // message.should.be.a('object')
                     done()
                 })
         })
@@ -376,6 +424,9 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -404,25 +455,27 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
 
-        it('TC-205-4 should return valid error status when the user does not exist', (done) => {
+        it('TC-205-4 should return vallid error status when the user does not exist', (done) => {
             chai.request(server)
-                .post('/api/user/alter/10')
+                .get('/api/user/alter/14')
                 .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 14 }, jwtSecretKey)
                 )
                 .send(
                     {
                         firstName: "Mart",
                         lastName: "van Holten",
-                        emailAdress: "mart@hotmail.com",
+                        emailAdress: "bhv@hotmail.com",
                         isActive: 1,
                         password: "mart",
-                        roles: "editor,guest",
                         street: "Rijngraafstraat",
                         city: "Breda",
                         phoneNumber: "0636457951"
@@ -430,7 +483,11 @@ describe('user API', () => {
                 )
                 .end((err, res) => {
                     assert.ifError(err)
-                    res.should.have.status(200)
+                    logger.debug(res)
+                    res.should.have.status(404)
+                    // res.body.should.be.an('object');
+                    // let { message } = res.body
+                    // message.should.be.a('string')
                     done()
                 })
         })
@@ -452,24 +509,28 @@ describe('user API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
 
-        it('TC-205-6 should return succes status when the user is alterd', (done) => {
+        it('TC-205-6 should return valid status when the user does exist and is altert', (done) => {
             chai.request(server)
-                .get('/api/user/alter/1')
+                .post('/api/user/alter/1')
                 .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
                 )
                 .send(
                     {
                         firstName: "Mart",
                         lastName: "van Holten",
-                        emailAdress: "bhv@hotmail.com",
+                        emailAdress: "mart@hotmail.com",
                         isActive: 1,
                         password: "mart",
+                        roles: "editor,guest",
                         street: "Rijngraafstraat",
                         city: "Breda",
                         phoneNumber: "0636457951"
@@ -477,8 +538,10 @@ describe('user API', () => {
                 )
                 .end((err, res) => {
                     assert.ifError(err)
-                    logger.debug(res)
-                    res.should.have.status(404)
+                    res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body;
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -495,6 +558,9 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -506,6 +572,9 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -521,6 +590,9 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(403)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -536,6 +608,9 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })

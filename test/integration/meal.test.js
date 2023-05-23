@@ -95,6 +95,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -112,6 +115,34 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
+                    done()
+                })
+        })
+
+        it('TC-301-3 should return succes status when a meal is added', (done) => {
+            chai.request(server)
+                .post('/api/meal/register')
+                .set(
+                    'authorization',
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
+                )
+                .send(
+                {
+                    name: "Meal C",
+                    dateTime: "2022-05-22 13:35:00",
+                    description: "description",
+                    imageUrl: "imag.com",
+                    price: "5"
+                })
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(201)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -134,6 +165,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(400)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -152,6 +186,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -174,6 +211,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(403)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -196,6 +236,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -218,6 +261,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -229,27 +275,36 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
 
         // TC-304 get meal detail
-        it('TC-303-1 should return valid error status when the meal does not exist', (done) => {
+        it('TC-304-1 should return valid error status when the meal does not exist', (done) => {
             chai.request(server)
                 .get('/api/meal/10')
                 .end((err, res) => {
                     assert.ifError(err)
-                    res.should.have.status(404)
+                    res.should.have.status(404)                    
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
 
-        it('TC-303-2 should return valid succes status when the meal does exist', (done) => {
+        it('TC-304-2 should return valid succes status when the meal does exist', (done) => {
             chai.request(server)
                 .get('/api/meal/1')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -261,6 +316,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -275,6 +333,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(403)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -289,6 +350,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -303,6 +367,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results } = res.body
+                    results.should.be.an('object')
                     done()
                 })
         })
@@ -341,6 +408,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -355,6 +425,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -369,6 +442,10 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results, message } = res.body
+                    results.should.be.an('object')
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -405,6 +482,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -419,6 +499,9 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
@@ -433,6 +516,10 @@ describe('meal API', () => {
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { results, message } = res.body
+                    results.should.be.an('object')
+                    message.should.be.a('string')
                     done()
                 })
         })
