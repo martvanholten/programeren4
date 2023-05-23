@@ -47,7 +47,7 @@ jobs:
     needs: integrationtests
     runs-on: ubuntu-latest
     environment:
-      name: RAILWAY # naam van mijn environment op GitHub
+      name: Railway # naam van mijn environment op GitHub
     steps:
       - name: Clone repository
         uses: actions/checkout@main
