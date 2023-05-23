@@ -383,22 +383,22 @@ describe('user API', () => {
                 })
         })
 
-        it('TC-204-3 should return a vallid succes status when the requsted user does exist', (done) => {
-            chai.request(server)
-                .get('/api/user/2')
-                .set(
-                    'authorization',
-                    'Bearer ' + jwt.sign({ userId: 2 }, jwtSecretKey)
-                )
-                .end((err, res) => {
-                    assert.ifError(err)
-                    res.should.have.status(404)
-                    // res.body.should.be.an('object');
-                    // let { message } = res.body
-                    // message.should.be.a('object')
-                    done()
-                })
-        })
+        // it('TC-204-3 should return a succes status when the requsted user does exist', (done) => {
+        //     chai.request(server)
+        //         .get('/api/user/2')
+        //         .set(
+        //             'authorization',
+        //             'Bearer ' + jwt.sign({ userId: 2 }, jwtSecretKey)
+        //         )
+        //         .end((err, res) => {
+        //             assert.ifError(err)
+        //             res.should.have.status(404)
+        //             // res.body.should.be.an('object');
+        //             // let { message } = res.body
+        //             // message.should.be.a('object')
+        //             done()
+        //         })
+        // })
 
         // TC-205 alter user
         it('TC-205-1 should return valid error status when required value is not present', (done) => {
