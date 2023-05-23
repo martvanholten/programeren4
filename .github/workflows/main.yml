@@ -1,4 +1,4 @@
-name: Deploy to Heroku
+name: Deploy to Railway
 
 on:
     push:
@@ -42,7 +42,7 @@ jobs:
       - name: npm test
         run: |
           npm test -- --DB_PASSWORD {{env.MYSQL_ROOT_PASSWORD}} --DB_USER root --DB_NAME ${{env.DB_DATABASE}}            
-          
+
     Railway-deploy:
     needs: integrationtests
     runs-on: ubuntu-latest
