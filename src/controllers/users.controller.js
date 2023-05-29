@@ -412,10 +412,6 @@ module.exports = {
           [req.userId],
           (err, rows, fields) => {
             connection.release()
-            logger.debug(rows.length)
-            if(rows.length === 0){
-              logger.debug('hello')
-            }
             if (err) {
               logger.info('error: ' + err.toString)
               res.status(400).json({

@@ -383,6 +383,7 @@ describe('user API', () => {
                 })
         })
 
+        // gives a error: Uncaught TypeError: Cannot read properties of undefined (reading 'length')
         it('TC-204-3 should return a succes status when the requsted user does exist', (done) => {
             chai.request(server)
                 .get('/api/user/1')
@@ -485,9 +486,9 @@ describe('user API', () => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(404)
-                    // res.body.should.be.an('object');
-                    // let { message } = res.body
-                    // message.should.be.a('string')
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
                     done()
                 })
         })
