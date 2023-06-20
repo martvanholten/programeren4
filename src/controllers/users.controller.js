@@ -147,7 +147,7 @@ module.exports = {
                 message: err.toString()
               })
             } else if(rows && rows.length === 1){
-              userInfo =rows
+              userInfo = rows
               pool.getConnection((err, connection) => {
                 if (err) {
                   logger.error('error getting connection from pool')
@@ -156,12 +156,10 @@ module.exports = {
                     .json({ message: err.toString() })
                 }
                 if (connection) {
-                  // Check if the account exists.
+                  // Check if the account has meals to sing up to.
                   connection.query(
                     'SELECT * FROM `meal` WHERE `dateTime` > "04-07-2022 10:00:00"',
                     (err, rows, fields) => {
-                      logger.info(rows)
-                      logger.info(rows.length)
                       connection.release()
                       if (err) {
                         logger.error('error: ', err.toString())
@@ -175,9 +173,8 @@ module.exports = {
                           res.status(200).json({results: {userInfo}, meals: {rows}})
                       }else{
                         logger.info(userInfo, 'no meals to sign up for')
-                        res.status(404).json({
-                          user: userInfo,
-                          meals: 'no meals to sign up for'
+                        res.status(200).json({
+                          results: {userInfo}, meals: 'no meals to sign up for'
                         })
                       }
                     }
@@ -274,8 +271,12 @@ module.exports = {
                 message: err.toString()
               })
             }else{
-              logger.info(rows)
-              res.status(200).json( {results: {rows}})
+              const userList = []
+              for (var i = 0; i < rows.length; i++) {
+                const { password, ...userinfo } = rows[i]
+                userList.push(userinfo)
+              }
+              res.status(200).json( {results: {userList}})
             }
           })
         }
@@ -298,8 +299,12 @@ module.exports = {
                 message: err.toString()
               })
             }else{
-              logger.info(rows)
-              res.status(200).json( {results: {rows}})
+              const userList = []
+              for (var i = 0; i < rows.length; i++) {
+                const { password, ...userinfo } = rows[i]
+                userList.push(userinfo)
+              }
+              res.status(200).json( {results: {userList}})
             }
           })
         }
@@ -321,8 +326,12 @@ module.exports = {
                 message: err.toString()
               })
             }else{
-              logger.info(rows)
-              res.status(200).json( {results: {rows}})
+              const userList = []
+              for (var i = 0; i < rows.length; i++) {
+                const { password, ...userinfo } = rows[i]
+                userList.push(userinfo)
+              }
+              res.status(200).json( {results: {userList}})
             }
           })
         }

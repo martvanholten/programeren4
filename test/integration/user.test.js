@@ -383,7 +383,6 @@ describe('user API', () => {
                 })
         })
 
-        // gives a error: Uncaught TypeError: Cannot read properties of undefined (reading 'length')
         it('TC-204-3 should return a succes status when the requsted user does exist', (done) => {
             chai.request(server)
                 .get('/api/user/1')
@@ -465,7 +464,7 @@ describe('user API', () => {
 
         it('TC-205-4 should return vallid error status when the user does not exist', (done) => {
             chai.request(server)
-                .get('/api/user/alter/14')
+                .post('/api/user/alter/14')
                 .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ userId: 14 }, jwtSecretKey)
