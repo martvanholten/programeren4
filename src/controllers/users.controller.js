@@ -158,7 +158,7 @@ module.exports = {
                 if (connection) {
                   // Check if the account has meals to sing up to.
                   connection.query(
-                    'SELECT * FROM `meal` WHERE `dateTime` > "2022-07-04 10:00:00"' ,
+                    'SELECT * FROM `meal` WHERE `dateTime` > "2022-07-04 10:00"' ,
                     (err, rows, fields) => {
                       connection.release()
                       if (err) {
