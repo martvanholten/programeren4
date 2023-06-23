@@ -129,7 +129,7 @@ module.exports = {
     logger.trace('delete called')
     logger.info(req.body)
     
-    if(req.params.id == req.userId){
+    
       pool.getConnection((err, connection) => {
         if (err) {
           logger.error('error getting connection from pool')
@@ -149,7 +149,8 @@ module.exports = {
                   message: err.toString()
                 })
               } else if(rows && rows.length === 1){
-                mealInfo = rows
+                if(rows[0].cookId === req.userId){
+                  mealInfo = rows
                 pool.getConnection((err, connection) => {
                   if (err) {
                     logger.error('error getting connection from pool')
@@ -178,6 +179,10 @@ module.exports = {
                     )
                   }
                 })
+                }else{
+                  logger.info('this meal belongs to someone else')
+                  res.status(403).json({message: 'this meal belongs to someone else'})
+                } 
               }else{
                 logger.info('this meal does not exist')
                 res.status(404).json({message: 'this meal does not exist'})
@@ -186,10 +191,7 @@ module.exports = {
           )
         }
       })
-    }else{
-      logger.info('this meal belongs to someone else')
-      res.status(403).json({message: 'this meal belongs to someone else'})
-    }    
+       
   },
 
   alter(req, res) {
@@ -399,36 +401,75 @@ module.exports = {
           'SELECT * FROM `meal_participants_user` WHERE `mealId` = ?',
           [req.params.id],
           (err, rows, fields) => {
-            connection.release()
             if (err) {
               logger.error('error: ', err.toString())
               res.status(422).json({
                 message: err.toString()
               })
             }else if(rows && rows.length >= 1){
-              userId = rows[0].userId
               connection.query(
-                'SELECT * FROM `user` WHERE `id` = ?',
-                [userId],
-                (err, rows, fields) => {
-                  connection.release()
+                'SELECT * FROM `meal` WHERE `id` = ?',
+                [req.params.id],
+                (err, rowsMeal, fields) => {
                   if (err) {
                     logger.error('error: ', err.toString())
                     res.status(422).json({
                       message: err.toString()
                     })
-                  }else{
-                    logger.info('Database responded: ')
-                    logger.info(rows)
-                    logger.info('participants requested: ', rows)
-                    res.status(200).json({results: {rows}})
+                  }else if(rowsMeal[0].cookId == req.userId){
+                    // let resultUser = []
+                    // async function getUser() {
+                      for (var i = 0; i < rows.length; i++){
+                        if(rows[i].userId == req.params.userId){
+                          connection.query(
+                            'SELECT * FROM `user` WHERE `id` = ?',
+                            [req.params.userId],
+                            (err, rowsUser, fields) => {
+                              connection.release()
+                              if (err) {
+                                logger.error('error: ', err.toString())
+                                res.status(422).json({
+                                  message: err.toString()
+                                })
+                              }else{
+                                logger.info('participants requested: ', rowsUser)
+                                res.status(200).json({
+                                results: rowsUser
+                                })
+                                // resultUser.push(rowsUser)
+                                // logger.info('participants requested: ', resultUser[0])
+                              }
+                             }
+                          )
+                        }
+                      }  
+                    // }
+                    // async function returnUser() {
+                    //   await getUser
+                    //   if(resultUser.length == 1){
+                    //     logger.info('participants requested: ', resultUser[0])
+                    //     res.status(200).json({
+                    //     results: resultUser
+                    //     })
+                    //   }else{
+                    //     logger.info('error: user is not an particepant')
+                    //     res.status(404).json({
+                    //     message: 'error: user is not an particepant'
+                    //     })
+                    //   }
+                    // }
+                  }else {
+                    logger.info('error: this is not your meal', req.userId, rowsMeal[0].cookId)
+                    res.status(402).json({
+                    message: 'error: this is not your meal'
+                    })
                   }
                 }
               )
             }else {
-              logger.info('error: meal id not found')
+              logger.info('error: meal does not exist or have any particepants')
               res.status(404).json({
-              message: 'error: meal id not found'
+              message: 'error: meal does not exist or have any particepants'
               })
             }
           }

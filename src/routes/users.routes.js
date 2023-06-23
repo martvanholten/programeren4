@@ -18,6 +18,7 @@ routes.post('/user/alter/:id',
 routes.get('/users/getall', usersController.getAll)
 routes.get('/user/:id', validation.validateUserToken, usersController.get)
 routes.get('/user/get/own', validation.validateUserToken, usersController.getOwn)
+routes.get('/info', usersController.info)
 
 routes.delete('/user/delete/:id',validation.validateUserToken, usersController.delete)
 

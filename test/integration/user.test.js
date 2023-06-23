@@ -521,7 +521,7 @@ describe('user API', () => {
                 .post('/api/user/alter/1')
                 .set(
                     'authorization',
-                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
                 )
                 .send(
                     {

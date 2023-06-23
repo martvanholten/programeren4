@@ -4,6 +4,12 @@ const logger = require('../config/config').logger
 const jwtSecretKey = require('../config/config').jwtSecretKey
 
 module.exports = {
+  info(req, res){
+    res.status(200).json({
+      results: {message: 'this is an system to sing up for meals'},
+    })
+  },
+
   login(req, res) {
     pool.getConnection((err, connection) => {
       if (err) {
@@ -98,8 +104,8 @@ module.exports = {
                 }
                 if (connection) {
                   connection.query(
-                    'SELECT * FROM `user` WHERE `firstName` = ?',
-                    [firstName],
+                    'SELECT * FROM `user` WHERE `emailAdress` = ?',
+                    [emailAdress],
                     (err, rows, fields) => {
                       connection.release()
                       if (err) {
@@ -147,7 +153,7 @@ module.exports = {
                 message: err.toString()
               })
             } else if(rows && rows.length === 1){
-              userInfo = rows
+              const { password, ...userinfo } = rows[0]
               pool.getConnection((err, connection) => {
                 if (err) {
                   logger.error('error getting connection from pool')
@@ -168,14 +174,12 @@ module.exports = {
                           message: err.toString()
                         })
                       } else if(rows && rows.length >= 1){
-                        logger.info('Database responded: ')
-                        logger.info('user: ', userInfo)
                           logger.info('Avalibale requested: ', rows)
-                          res.status(200).json({results: {userInfo}, meals: {rows}})
+                          res.status(200).json({results: {userinfo}, meals: {rows}})
                       }else{
-                        logger.info(userInfo, 'no meals to sign up for')
+                        logger.info(userinfo, 'no meals to sign up for')
                         res.status(200).json({
-                          results: {userInfo}, meals: 'no meals to sign up for'
+                          results: {userinfo}, meals: 'no meals to sign up for'
                         })
                       }
                     }
@@ -384,8 +388,8 @@ module.exports = {
                             message: err.toString()
                           })
                         } else {
-                          logger.info('result: ', userInfo)
-                          res.status(200).json({results: {userInfo}})
+                          logger.info('result: deleted ', userInfo)
+                          res.status(200).json({results: {userInfo}, message: 'deleted user' })
                         }
                       }
                     )
@@ -417,9 +421,10 @@ module.exports = {
           .json({ message: err.toString() })
       }
       if (connection) {
+        
         connection.query(
           'SELECT * FROM `user` WHERE id = ?',
-          [req.userId],
+          [req.params.id],
           (err, rows, fields) => {
             connection.release()
             if (err) {
@@ -428,34 +433,39 @@ module.exports = {
                 message: err.toString()
               })
             }else if(rows && rows.length === 1){
-              pool.getConnection((err, connection) => {
-                if (err) {
-                  logger.error('error getting connection from pool')
-                  res
-                    .status(500)
-                    .json({ message: err.toString() })
-                }
-                if (connection) {
-                  // Alter the account.
-                  let { firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive} = req.body
-                  connection.query(
-                    'UPDATE `user` SET `firstName` = ?, `lastName` = ?, `emailAdress` = ?, `password` = ?, `street` = ?, `city` = ?, `phoneNumber` = ?, isActive = ? WHERE `id` = ?',
-                    [firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive, req.params.id],
-                    (err, rows, fields) => {
-                      connection.release()
-                      if (err) {
-                        logger.info('error: ' + err.toString)
-                        res.status(400).json({
-                          message: err.toString
-                        })
-                      }else{
-                        logger.info('message: ', req.body)
-                        res.status(200).json({results: req.body})
+              if(rows[0].id == req.userId){
+                pool.getConnection((err, connection) => {
+                  if (err) {
+                    logger.error('error getting connection from pool')
+                    res
+                      .status(500)
+                      .json({ message: err.toString() })
+                  }
+                  if (connection) {
+                    // Alter the account.
+                    let { firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive} = req.body
+                    connection.query(
+                      'UPDATE `user` SET `firstName` = ?, `lastName` = ?, `emailAdress` = ?, `password` = ?, `street` = ?, `city` = ?, `phoneNumber` = ?, isActive = ? WHERE `id` = ?',
+                      [firstName, lastName, emailAdress, password, street, city, phoneNumber, isActive, req.params.id],
+                      (err, rows, fields) => {
+                        connection.release()
+                        if (err) {
+                          logger.info('error: ' + err.toString)
+                          res.status(400).json({
+                            message: err.toString
+                          })
+                        }else{
+                          logger.info('message: ', req.body)
+                          res.status(200).json({results: req.body})
+                        }
                       }
-                    }
-                  )
-                }
-              })
+                    )
+                  }
+                })
+              }else{
+                logger.info('message: this is not your user')
+                res.status(403).json({message: 'this is not your user'})
+              }
             }else{
               logger.info('message: user not found')
               res.status(404).json({message: 'user not found'})
