@@ -597,21 +597,20 @@ describe('user API', () => {
                 })
         })
 
-        it('TC-206-4 should return vallid status when the user is deleted', (done) => {
+        it('TC-206-4 should return vallid status when the user is deleted', () => {
             chai.request(server)
                 .delete('/api/user/delete/1')
                 .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey)
                     )
-                .end((err, res) => {
+                .end(async (err, res) => {
                     assert.ifError(err)
                     logger.debug(res)
                     res.should.have.status(200)
                     res.body.should.be.an('object');
                     let { results } = res.body
                     results.should.be.an('object')
-                    done()
                 })
         })
     })
