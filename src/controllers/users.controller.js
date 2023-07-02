@@ -6,7 +6,7 @@ const jwtSecretKey = require('../config/config').jwtSecretKey
 module.exports = {
   info(req, res){
     res.status(200).json({
-      results: {message: 'this is an system to sing up for meals'},
+      results: {name: 'Mart van Holten', number: '2168198', message: 'this is an system to sing up for meals'},
     })
   },
 
@@ -144,7 +144,7 @@ module.exports = {
         // Check if the account exists.
         connection.query(
           'SELECT * FROM `user` WHERE `id` = ?',
-          [req.userId],
+          [req.params.id],
           (err, rows, fields) => {
             connection.release()
             if (err) {
@@ -153,6 +153,7 @@ module.exports = {
                 message: err.toString()
               })
             } else if(rows && rows.length === 1){
+
               const { password, ...userinfo } = rows[0]
               pool.getConnection((err, connection) => {
                 if (err) {
@@ -164,8 +165,8 @@ module.exports = {
                 if (connection) {
                   // Check if the account has meals to sing up to.
                   connection.query(
-                    'SELECT * FROM `meal` WHERE `dateTime` > ?' ,
-                    ['2022-07-04 10:00:00'],
+                    'SELECT * FROM `meal` WHERE `dateTime` > ? && `cookId` = ?' ,
+                    ['2022-07-04 10:00:00', req.params.id], 
                     (err, rows, fields) => {
                       connection.release()
                       if (err) {
@@ -174,12 +175,12 @@ module.exports = {
                           message: err.toString()
                         })
                       } else if(rows && rows.length >= 1){
-                          logger.info('Avalibale requested: ', rows)
+                          logger.info('meals: ', rows)
                           res.status(200).json({results: {userinfo}, meals: {rows}})
                       }else{
-                        logger.info(userinfo, 'no meals to sign up for')
+                        logger.info(userinfo, 'no meals available')
                         res.status(200).json({
-                          results: {userinfo}, meals: 'no meals to sign up for'
+                          results: {userinfo}, meals: 'no meals available'
                         })
                       }
                     }

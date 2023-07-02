@@ -310,7 +310,7 @@ describe('meal API', () => {
         })
 
         // TC-305 delete a meal
-        it('TC-305-2 should return valid error status when a user is not logged in', (done) => {
+        it('TC-305-1 should return valid error status when a user is not logged in', (done) => {
             chai.request(server)
                 .delete('/api/meal/delete/1')
                 .end((err, res) => {
@@ -323,7 +323,7 @@ describe('meal API', () => {
                 })
         })
 
-        it('TC-305-3 should return valid error status when a user does not own the meal', (done) => {
+        it('TC-305-2 should return valid error status when a user does not own the meal', (done) => {
             chai.request(server)
                 .delete('/api/meal/delete/1')
                 .set(
@@ -340,7 +340,7 @@ describe('meal API', () => {
                 })
         })
 
-        it('TC-305-4 should return valid error status when a meal does not exist', (done) => {
+        it('TC-305-3 should return valid error status when a meal does not exist', (done) => {
             chai.request(server)
                 .delete('/api/meal/delete/10')
                 .set(
@@ -357,7 +357,7 @@ describe('meal API', () => {
                 })
         })
 
-        it('TC-305-5 should return valid succes status when a meal is deleted', (done) => {
+        it('TC-305-4 should return valid succes status when a meal is deleted', (done) => {
             chai.request(server)
                 .delete('/api/meal/delete/1')
                 .set(
@@ -449,6 +449,23 @@ describe('meal API', () => {
                     done()
                 })
         })
+
+        it('TC-401-4 should return valid sucess status when a meal has reached the maximum amount of users signed up', (done) => {
+            chai.request(server)
+                .post('/api/meal/signon/2')
+                .set(
+                    'authorization',
+                    'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),
+                )
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(200)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
+                    done()
+                })
+        })
         
         
         // TC-402 sign off for a meal
@@ -478,7 +495,7 @@ describe('meal API', () => {
 
         it('TC-402-1 should return valid error status when a user is not logged in', (done) => {
             chai.request(server)
-                .post('/api/meal/signon/1')
+                .post('/api/meal/signoff/1')
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(401)
@@ -491,7 +508,7 @@ describe('meal API', () => {
 
         it('TC-402-2 should return valid error status when a meal does not exist', (done) => {
             chai.request(server)
-                .post('/api/meal/signon/10')
+                .post('/api/meal/signoff/10')
                 .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ id: 1 }, jwtSecretKey),
@@ -506,9 +523,26 @@ describe('meal API', () => {
                 })
         })
 
-        it('TC-402-3 should return valid sucess status when a user is signed off', (done) => {
+        it('TC-402-3 should return valid error status when a user is not signed on', (done) => {
             chai.request(server)
-                .post('/api/meal/signon/1')
+                .post('/api/meal/signoff/2')
+                .set(
+                    'authorization',
+                    'Bearer ' + jwt.sign({ userId: 2 }, jwtSecretKey),
+                )
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(404)
+                    res.body.should.be.an('object');
+                    let { message } = res.body
+                    message.should.be.a('string')
+                    done()
+                })
+        })
+
+        it('TC-402-4 should return valid sucess status when a user is signed off', (done) => {
+            chai.request(server)
+                .post('/api/meal/signoff/1')
                 .set(
                     'authorization',
                     'Bearer ' + jwt.sign({ userId: 1 }, jwtSecretKey),

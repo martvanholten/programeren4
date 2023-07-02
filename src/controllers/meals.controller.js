@@ -285,6 +285,97 @@ module.exports = {
               message: err.toString()
             })
           }else if(rows && rows.length === 1){
+            mealInfo = rows[0]
+            logger.error(mealInfo.maxAmountOfParticipants, 'hello world')
+            // test
+            if (connection) {
+              connection.query(
+                'SELECT * FROM `meal_participants_user` WHERE `mealId` = ?',
+                [req.params.id],
+                (err, rows, fields) => {
+                  logger.error(mealInfo.maxAmountOfParticipants, rows.length, 'hello world')
+                  if (err) {
+                    logger.error('error: ', err.toString())
+                    res.status(422).json({
+                      message: err.toString()
+                    })
+                  }else if(rows.length <= mealInfo.maxAmountOfParticipants){                    
+                    if (connection) {
+                      connection.query(
+                        'SELECT * FROM `meal_participants_user` WHERE `mealId` = ? && `userId` = ?',
+                        [req.params.id, req.userId],
+                        (err, rows, fields) => {
+                          if (err) {
+                            logger.error('error: ', err.toString())
+                            res.status(422).json({
+                              message: err.toString()
+                            })
+                          }else if(rows && rows.length > 0){                        
+                            logger.info(mealInfo)
+                            logger.info('already singed up for this course')
+                            res.status(200).json({results: {mealInfo}, message: "already singed up for this course"})                        
+                          }else{
+                            connection.query(
+                              'INSERT INTO `meal_participants_user` (`mealId`, `userId`) VALUES (?,?)',
+                              [req.params.id, req.userId],
+                              (err, rows, fields) => {
+                                connection.release()
+                                if (err) {
+                                  logger.error('error: ', err.toString())
+                                  res.status(422).json({
+                                    message: err.toString()
+                                  })
+                                } else {
+                                  logger.info(mealInfo)
+                                  logger.info('Singed up for the meal')
+                                  res.status(200).json({results: {mealInfo}, message: "signed up for the meal"})
+                                }
+                            })
+                          }
+                        }
+                      )
+                    }                      
+                  }else{
+                    logger.info(mealInfo)
+                    logger.info('max aumont of participants reached')
+                    res.status(200).json({message: "max aumont of participants reached"})                        
+                  }
+                }
+              )
+            }
+          }else{
+              logger.info('There is no meal')
+              res.status(404).json({message: 'There is no meal'})
+          }
+        }
+      )
+    })
+  },
+
+  signOff(req, res) {
+    logger.trace('sign on called')
+    logger.info(req.body)
+
+    pool.getConnection((err, connection) => {
+      if (err) {
+        logger.error('error getting connection from pool')
+        res
+          .status(500)
+          .json({ message: err.toString() })
+      }
+      connection.query(
+        'SELECT * FROM `meal` WHERE `id` = ?',
+        [req.params.id],
+        (err, rows, fields) => {
+          connection.release()
+          logger.debug(rows)
+          logger.debug(rows.length)
+          if (err) {
+            logger.error('error: ', err.toString())
+            res.status(404).json({
+              message: err.toString()
+            })
+          }else if(rows && rows.length === 1){
             mealInfo = rows
             if (connection) {
               connection.query(
@@ -315,22 +406,9 @@ module.exports = {
                       }
                     )
                   }else{
-                    connection.query(
-                      'INSERT INTO `meal_participants_user` (`mealId`, `userId`) VALUES (?,?)',
-                      [req.params.id, req.userId],
-                      (err, rows, fields) => {
-                        connection.release()
-                        if (err) {
-                          logger.error('error: ', err.toString())
-                          res.status(422).json({
-                            message: err.toString()
-                          })
-                        } else {
-                          logger.info(mealInfo)
-                          logger.info('Singed up for the meal')
-                          res.status(200).json({results: {mealInfo}, message: "signed up for the meal"})
-                        }
-                    })
+                    logger.info(mealInfo)
+                    logger.info('you are not signed up for this meal')
+                    res.status(404).json({message: "you are not signed up for this meal"})                                            
                   }
                 }
               )
